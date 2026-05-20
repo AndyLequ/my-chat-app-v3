@@ -38,11 +38,11 @@ export function ChatArea({ members }: ChatAreaProps) {
       }),
     );
     dispatch({ type: "CLEAR_TEXT" });
-  }, [text, name, connected, currentRoom]);
+  }, [text, name, connected, currentRoom, dispatch, socketRef]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, bottomRef]);
 
   if (!currentRoom) {
     return (

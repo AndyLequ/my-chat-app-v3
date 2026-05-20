@@ -1,3 +1,11 @@
+import type { Dispatch, RefObject } from "react";
+
+export interface ChatContextType extends AppState {
+  dispatch: Dispatch<ActionType>;
+  socketRef: RefObject<WebSocket | null>;
+  bottomRef: RefObject<HTMLDivElement | null>;
+}
+
 export interface ChatMessage {
   id?: string;
   type: "chat" | "join" | "leave" | "history";

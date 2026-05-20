@@ -1,6 +1,6 @@
 import { memo, useContext } from "react";
 import { ChatContext } from "../context/ChatContext";
-import { ChatMessage } from "../types";
+import type { ChatMessage } from "../types";
 import { Avatar } from "./Avatar";
 
 interface MessageProps {

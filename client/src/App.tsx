@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { ChatContext } from "./context/ChatContext";
-import { Sidebar } from "./components/Sidebar";
+import { Sidebar } from "./components/SideBar";
 import { ChatArea } from "./components/ChatArea";
 import { MembersPanel } from "./components/MembersPanel";
 import { NameScreen } from "./components/NameScreen";
