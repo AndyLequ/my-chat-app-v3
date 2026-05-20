@@ -1,5 +1,6 @@
-import { createContext, useReducer, useRef, ReactNode } from "react";
-import { AppState, ActionType, ChatContextType } from "../types";
+import { createContext, useReducer, useRef } from "react";
+import type { ReactNode } from "react";
+import type { AppState, ActionType, ChatContextType } from "../types";
 
 const initialState: AppState = {
   messages: [],

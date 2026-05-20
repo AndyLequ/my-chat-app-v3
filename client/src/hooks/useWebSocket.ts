@@ -1,6 +1,6 @@
 import { useEffect, useContext } from "react";
 import { ChatContext } from "../context/ChatContext";
-import { ChatMessage } from "../types";
+import type { ChatMessage } from "../types";
 
 const WS_URL = import.meta.env.VITE_WS_URL as string;
 
