@@ -7,6 +7,17 @@ export interface ChatMessage {
   timestamp?: string;
 }
 
+export type ActionType =
+  | { type: "SET_NAME"; payload: string }
+  | { type: "SET_TEXT"; payload: string }
+  | { type: "SET_CONNECTED"; payload: boolean }
+  | { type: "SET_NAME_CONFIRMED" }
+  | { type: "ADD_MESSAGE"; payload: ChatMessage }
+  | { type: "SET_MESSAGES"; payload: ChatMessage[] }
+  | { type: "CLEAR_TEXT" }
+  | { type: "SET_ROOM"; payload: string }
+  | { type: "CLEAR_MESSAGES" };
+
 export interface AppState {
   messages: ChatMessage[];
   name: string;
@@ -14,4 +25,10 @@ export interface AppState {
   connected: boolean;
   nameSet: boolean;
   currentRoom: string;
+}
+
+export interface ChatContextType extends AppState {
+  dispatch: React.Dispatch<ActionType>;
+  socketRef: React.RefObject<WebSocket | null>;
+  bottomRef: React.RefObject<HTMLDivElement | null>;
 }
