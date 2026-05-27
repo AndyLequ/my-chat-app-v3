@@ -25,12 +25,18 @@ export function useWebSocket() {
       ws.addEventListener("message", (e: MessageEvent) => {
         const msg = JSON.parse(e.data) as ChatMessage & {
           messages?: ChatMessage[];
-          members?: string[];
         };
 
         if (msg.type === "history" && msg.messages) {
           // load message history on room join
           dispatch({ type: "SET_MESSAGES", payload: msg.messages });
+        } else if (msg.type === "members" && msg.members) {
+          msg.members.forEach((memberName) => {
+            dispatch({
+              type: "ADD_MESSAGE",
+              payload: { type: "join", name: memberName },
+            });
+          });
         } else if (msg.type === "chat") {
           dispatch({ type: "ADD_MESSAGE", payload: msg });
         } else if (msg.type === "join") {

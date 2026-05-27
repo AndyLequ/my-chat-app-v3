@@ -8,11 +8,12 @@ export interface ChatContextType extends AppState {
 
 export interface ChatMessage {
   id?: string;
-  type: "chat" | "join" | "leave" | "history";
+  type: "chat" | "join" | "leave" | "history" | "members";
   name: string;
   text?: string;
   room?: string;
   timestamp?: string;
+  members?: string[];
 }
 
 export type ActionType =
