@@ -25,6 +25,7 @@ export function useWebSocket() {
       ws.addEventListener("message", (e: MessageEvent) => {
         const msg = JSON.parse(e.data) as ChatMessage & {
           messages?: ChatMessage[];
+          members?: string[];
         };
 
         if (msg.type === "history" && msg.messages) {
