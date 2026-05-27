@@ -51,7 +51,12 @@ export function setupWebSocket(wss: WebSocketServer) {
             .filter((s) => s !== socket && s.userName)
             .map((s) => s.userName!);
 
-          socket.send();
+          socket.send(
+            JSON.stringify({
+              type: "members",
+              members: existingMembers,
+            }),
+          );
 
           // send last 50 messages from DB on join
           const history = await db
