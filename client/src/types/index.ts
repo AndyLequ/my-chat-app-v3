@@ -25,7 +25,10 @@ export type ActionType =
   | { type: "SET_MESSAGES"; payload: ChatMessage[] }
   | { type: "CLEAR_TEXT" }
   | { type: "SET_ROOM"; payload: string }
-  | { type: "CLEAR_MESSAGES" };
+  | { type: "CLEAR_MESSAGES" }
+  | { type: "SET_MEMBER_LIST"; payload: string[] }
+  | { type: "ADD_MEMBER"; payload: string }
+  | { type: "REMOVE_MEMBER"; payload: string };
 
 export interface AppState {
   messages: ChatMessage[];

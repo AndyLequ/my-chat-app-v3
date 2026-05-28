@@ -55,5 +55,5 @@ export function useWebSocket() {
 
     connect();
     return () => socketRef.current?.close();
-  }, []);
+  }, [dispatch, socketRef]);
 }
