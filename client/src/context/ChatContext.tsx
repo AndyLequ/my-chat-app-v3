@@ -4,6 +4,7 @@ import type { AppState, ActionType, ChatContextType } from "../types";
 
 const initialState: AppState = {
   messages: [],
+  members: [],
   name: "",
   text: "",
   connected: false,
