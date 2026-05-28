@@ -32,6 +32,7 @@ export type ActionType =
 
 export interface AppState {
   messages: ChatMessage[];
+  members: string[];
   name: string;
   text: string;
   connected: boolean;
