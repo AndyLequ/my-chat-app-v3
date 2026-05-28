@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import { ChatContext } from "./context/ChatContext";
 import { Sidebar } from "./components/SideBar";
 import { ChatArea } from "./components/ChatArea";
@@ -8,20 +8,25 @@ import { useWebSocket } from "./hooks/useWebSocket";
 
 export function App() {
   const ctx = useContext(ChatContext)!;
-  const { nameSet, messages, currentRoom, name } = ctx;
-  const [members, setMembers] = useState<string[]>([]);
+  const { nameSet, members, currentRoom, name, dispatch } = ctx;
+
+  // deleting old useEffect tracking members from messages
+  // members now comes directly from context
 
   useWebSocket();
 
+  // add yourself to members when you join a room
   useEffect(() => {
-    const names = new Set<string>();
-    messages.forEach((m) => {
-      if (m.type === "join") names.add(m.name);
-      if (m.type === "leave") names.delete(m.name);
-    });
-    if (currentRoom && name) names.add(name);
-    setMembers([...names]);
-  }, [messages, currentRoom, name]);
+    if (currentRoom && name) {
+      dispatch({ type: "ADD_MEMBER", payload: name });
+    }
+  }, [currentRoom, name, dispatch]);
+
+  useEffect(() => {
+    if (!currentRoom) {
+      dispatch({ type: "SET_MEMBER_LIST", payload: [] });
+    }
+  }, [currentRoom, dispatch]);
 
   if (!nameSet) return <NameScreen />;
 

@@ -30,6 +30,9 @@ export function useWebSocket() {
         if (msg.type === "history" && msg.messages) {
           // load message history on room join
           dispatch({ type: "SET_MESSAGES", payload: msg.messages });
+        } else if (msg.type === "members" && msg.members) {
+          // set the existing member list directly
+          dispatch({ type: "SET_MEMBER_LIST", payload: msg.members });
         } else if (msg.type === "chat") {
           dispatch({ type: "ADD_MESSAGE", payload: msg });
         } else if (msg.type === "join") {
@@ -37,16 +40,18 @@ export function useWebSocket() {
             type: "ADD_MESSAGE",
             payload: { type: "join", name: msg.name },
           });
+          dispatch({ type: "ADD_MEMBER", payload: msg.name });
         } else if (msg.type === "leave") {
           dispatch({
             type: "ADD_MESSAGE",
             payload: { type: "leave", name: msg.name },
           });
+          dispatch({ type: "REMOVE_MEMBER", payload: msg.name });
         }
       });
     }
 
     connect();
     return () => socketRef.current?.close();
-  }, []);
+  }, [dispatch, socketRef]);
 }

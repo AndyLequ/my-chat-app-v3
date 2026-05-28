@@ -8,11 +8,12 @@ export interface ChatContextType extends AppState {
 
 export interface ChatMessage {
   id?: string;
-  type: "chat" | "join" | "leave" | "history";
+  type: "chat" | "join" | "leave" | "history" | "members";
   name: string;
   text?: string;
   room?: string;
   timestamp?: string;
+  members?: string[];
 }
 
 export type ActionType =
@@ -24,10 +25,14 @@ export type ActionType =
   | { type: "SET_MESSAGES"; payload: ChatMessage[] }
   | { type: "CLEAR_TEXT" }
   | { type: "SET_ROOM"; payload: string }
-  | { type: "CLEAR_MESSAGES" };
+  | { type: "CLEAR_MESSAGES" }
+  | { type: "SET_MEMBER_LIST"; payload: string[] }
+  | { type: "ADD_MEMBER"; payload: string }
+  | { type: "REMOVE_MEMBER"; payload: string };
 
 export interface AppState {
   messages: ChatMessage[];
+  members: string[];
   name: string;
   text: string;
   connected: boolean;

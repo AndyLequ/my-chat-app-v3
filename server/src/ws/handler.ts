@@ -46,6 +46,18 @@ export function setupWebSocket(wss: WebSocketServer) {
           socket.currentRoom = msg.room;
           socket.userName = msg.name;
 
+          // send exiting members to the new joiner
+          const existingMembers = [...rooms.get(msg.room)!]
+            .filter((s) => s !== socket && s.userName)
+            .map((s) => s.userName!);
+
+          socket.send(
+            JSON.stringify({
+              type: "members",
+              members: existingMembers,
+            }),
+          );
+
           // send last 50 messages from DB on join
           const history = await db
             .select()
