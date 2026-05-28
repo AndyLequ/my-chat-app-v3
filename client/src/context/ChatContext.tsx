@@ -32,6 +32,16 @@ function reducer(state: AppState, action: ActionType): AppState {
       return { ...state, currentRoom: action.payload };
     case "CLEAR_MESSAGES":
       return { ...state, messages: [] };
+    case "SET_MEMBER_LIST":
+      return { ...state, members: action.payload };
+    case "ADD_MEMBER":
+      if (state.members.includes(action.payload)) return state;
+      return { ...state, members: [...state.members, action.payload] };
+    case "REMOVE_MEMBER":
+      return {
+        ...state,
+        members: state.members.filter((m) => m !== action.payload),
+      };
     default:
       return state;
   }
