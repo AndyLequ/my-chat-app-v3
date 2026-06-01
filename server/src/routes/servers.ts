@@ -13,7 +13,7 @@ router.get("/", async (req, res) => {
 
 router.post("/", async (req, res) => {
   const { name, description } = req.body;
-  const [server] = await dev
+  const [server] = await db
     .insert(servers)
     .values({ name, description })
     .returning();
