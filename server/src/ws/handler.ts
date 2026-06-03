@@ -73,7 +73,7 @@ export function setupWebSocket(wss: WebSocketServer) {
         }
 
         case "chat": {
-          if (!socket.currentRoom || !msg.text) return;
+          if (!socket.currentChannel || !msg.text) return;
 
           // save to database
           const [saved] = await db
@@ -81,16 +81,16 @@ export function setupWebSocket(wss: WebSocketServer) {
             .values({
               name: msg.name,
               text: msg.text,
-              room: socket.currentRoom,
+              channelId: socket.currentChannel,
             })
             .returning();
 
-          broadcastToRoom(socket.currentRoom, {
+          broadcastToChannel(socket.currentRoom, {
             type: "chat",
             id: saved.id.toString(),
             name: saved.name,
             text: saved.text,
-            room: saved.room,
+            channelId: saved.channelId,
             timestamp: saved.timestamp.toISOString(),
           });
           break;
