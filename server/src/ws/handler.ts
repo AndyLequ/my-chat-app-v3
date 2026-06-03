@@ -58,6 +58,18 @@ export function setupWebSocket(wss: WebSocketServer) {
           socket.send(
             JSON.stringify({ type: "members", members: existingMembers }),
           );
+
+          // send message history for this channel
+          const history = await db
+            .select()
+            .from(messages)
+            .where(eq(messages.channelId, msg.channelId))
+            .orderBy(messages.timestamp)
+            .limit(50);
+          socket.send(JSON.stringify({ type: "history", messages: history }));
+
+          broadcastToChannel(msg.channelId, { type: "join", name: msg.name });
+          break;
         }
 
         case "chat": {
