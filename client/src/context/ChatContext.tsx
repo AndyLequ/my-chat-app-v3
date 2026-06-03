@@ -9,7 +9,8 @@ const initialState: AppState = {
   text: "",
   connected: false,
   nameSet: false,
-  currentRoom: "",
+  currentServer: null,
+  currentChannel: null,
 };
 
 function reducer(state: AppState, action: ActionType): AppState {
@@ -28,8 +29,10 @@ function reducer(state: AppState, action: ActionType): AppState {
       return { ...state, messages: action.payload };
     case "CLEAR_TEXT":
       return { ...state, text: "" };
-    case "SET_ROOM":
-      return { ...state, currentRoom: action.payload };
+    case "SET_SERVER":
+      return { ...state, currentServer: action.payload };
+    case "SET_CHANNEL":
+      return { ...state, currentChannel: action.payload, messages: [] };
     case "CLEAR_MESSAGES":
       return { ...state, messages: [] };
     case "SET_MEMBER_LIST":
