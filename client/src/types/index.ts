@@ -6,6 +6,19 @@ export interface ChatContextType extends AppState {
   bottomRef: RefObject<HTMLDivElement | null>;
 }
 
+export interface Server {
+  id: number;
+  name: string;
+  description?: string;
+  createdAt: string;
+}
+
+export interface Channel {
+  id: number;
+  name: string;
+  serverId: number;
+}
+
 export interface ChatMessage {
   id?: string;
   type: "chat" | "join" | "leave" | "history" | "members";
@@ -14,6 +27,16 @@ export interface ChatMessage {
   room?: string;
   timestamp?: string;
   members?: string[];
+}
+export interface AppState {
+  messages: ChatMessage[];
+  members: string[];
+  name: string;
+  text: string;
+  connected: boolean;
+  nameSet: boolean;
+  currentServer: Server | null;
+  currentChannel: Channel | null;
 }
 
 export type ActionType =
@@ -24,21 +47,12 @@ export type ActionType =
   | { type: "ADD_MESSAGE"; payload: ChatMessage }
   | { type: "SET_MESSAGES"; payload: ChatMessage[] }
   | { type: "CLEAR_TEXT" }
-  | { type: "SET_ROOM"; payload: string }
+  | { type: "SET_SERVER"; payload: Server | null }
+  | { type: "SET_CHANNEL"; payload: Channel | null }
   | { type: "CLEAR_MESSAGES" }
   | { type: "SET_MEMBER_LIST"; payload: string[] }
   | { type: "ADD_MEMBER"; payload: string }
   | { type: "REMOVE_MEMBER"; payload: string };
-
-export interface AppState {
-  messages: ChatMessage[];
-  members: string[];
-  name: string;
-  text: string;
-  connected: boolean;
-  nameSet: boolean;
-  currentRoom: string;
-}
 
 export interface ChatContextType extends AppState {
   dispatch: React.Dispatch<ActionType>;
