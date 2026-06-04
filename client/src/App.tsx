@@ -45,18 +45,18 @@ export function App() {
       .then(setChannels);
   }, [currentServer]);
 
-  // add yourself to members when you join a room
-  // useEffect(() => {
-  //   if (currentRoom && name) {
-  //     dispatch({ type: "ADD_MEMBER", payload: name });
-  //   }
-  // }, [currentRoom, name, dispatch]);
+  // track members
+  useEffect(() => {
+    if (currentChannel && name) {
+      dispatch({ type: "ADD_MEMBER", payload: name });
+    }
+  }, [currentChannel, name, dispatch]);
 
   useEffect(() => {
-    if (!currentRoom) {
+    if (!currentChannel) {
       dispatch({ type: "SET_MEMBER_LIST", payload: [] });
     }
-  }, [currentRoom, dispatch]);
+  }, [currentChannel, dispatch]);
 
   if (!nameSet) return <NameScreen />;
 
