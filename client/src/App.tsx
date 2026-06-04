@@ -58,13 +58,77 @@ export function App() {
     }
   }, [currentChannel, dispatch]);
 
+  async function handleJoinServer(server: Server) {
+    dispatch({ type: "SET_SERVER", payload: server });
+    dispatch({ type: "SET_CHANNEL", payload: null });
+
+    // register membership
+    await fetch(`http://localhost:8080/api/servers/${server.id}/join`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userName: name }),
+    });
+  }
+
+  async function handleCreateServer(serverName: string, description: string) {
+    const res = await fetch("http://localhost:8080/api/servers", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: serverName, description }),
+    });
+    const newServer = await res.json();
+    setServers((prev) => [...prev, newServer]);
+    setShowCreateServer(false);
+    handleJoinServer(newServer);
+  }
+
+  function handleJoinChannel(channel: Channel) {
+    if (currentChannel) {
+      socketRef.current?.send(
+        JSON.stringify({
+          type: "leave-channel",
+          name,
+          channelId: currentChannel.id,
+        }),
+      );
+    }
+
+    dispatch({ type: "SET_CHANNEL", payload: channel });
+    socketRef.current?.send(
+      JSON.stringify({
+        type: "join-channel",
+        name,
+        channelId: channel.id,
+        serverId: currentServer?.id,
+      }),
+    );
+  }
+
   if (!nameSet) return <NameScreen />;
 
   return (
-    <div className="w-full h-full flex rounded-2xl overflow-hidden border border-zinc-800/60 shadow-2xl">
-      <Sidebar />
-      <ChatArea members={members} />
-      <MembersPanel members={members} />
-    </div>
+    <>
+      <div className="w-full h-full flex rounded-2xl overflow-hidden border border-zinc-800/60 shadow-2xl">
+        <ServerList
+          servers={servers}
+          onJoinServer={handleJoinServer}
+          onCreateServer={() => setShowCreateServer(true)}
+        />
+        <Sidebar
+          channels={channels}
+          currentChannel={currentChannel}
+          onJoinChannel={handleJoinChannel}
+        />
+        <ChatArea members={members} />
+        <MembersPanel members={members} />
+      </div>
+
+      {showCreateServer && (
+        <CreateServerModal
+          onClose={() => setShowCreateServer(false)}
+          onCreate={handleCreateServer}
+        />
+      )}
+    </>
   );
 }
