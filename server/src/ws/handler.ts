@@ -101,13 +101,14 @@ export function setupWebSocket(wss: WebSocketServer) {
           if (socket.currentChannel) {
             channels.get(socket.currentChannel)?.delete(socket);
             broadcastToChannel(socket.currentChannel, {
-              type: 'leave',
+              type: "leave",
               name: msg.name,
               channelId: socket.currentChannel,
             });
             socket.currentChannel = undefined;
           }
           break;
+        }
       }
     });
 
