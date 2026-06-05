@@ -4,7 +4,8 @@ import { messages } from "../db/schema";
 import { eq } from "drizzle-orm";
 
 interface ChatSocket extends WebSocket {
-  currentRoom?: string;
+  currentChannel?: number;
+  currentServer?: number;
   userName?: string;
   isAlive: boolean;
 }
@@ -85,7 +86,7 @@ export function setupWebSocket(wss: WebSocketServer) {
             })
             .returning();
 
-          broadcastToChannel(socket.currentRoom, {
+          broadcastToChannel(socket.currentChannel, {
             type: "chat",
             id: saved.id.toString(),
             name: saved.name,
@@ -96,28 +97,27 @@ export function setupWebSocket(wss: WebSocketServer) {
           break;
         }
 
-        case "leave-room": {
-          if (socket.currentRoom) {
-            rooms.get(socket.currentRoom)?.delete(socket);
-            broadcastToRoom(socket.currentRoom, {
-              type: "leave",
+        case "leave-channel": {
+          if (socket.currentChannel) {
+            channels.get(socket.currentChannel)?.delete(socket);
+            broadcastToChannel(socket.currentChannel, {
+              type: 'leave',
               name: msg.name,
-              room: socket.currentRoom,
+              channelId: socket.currentChannel,
             });
-            socket.currentRoom = undefined;
+            socket.currentChannel = undefined;
           }
           break;
-        }
       }
     });
 
     socket.on("close", () => {
-      if (socket.currentRoom) {
-        rooms.get(socket.currentRoom)?.delete(socket);
-        broadcastToRoom(socket.currentRoom, {
+      if (socket.currentChannel) {
+        channels.get(socket.currentChannel)?.delete(socket);
+        broadcastToChannel(socket.currentChannel, {
           type: "leave",
           name: socket.userName ?? "unknown",
-          room: socket.currentRoom,
+          channelId: socket.currentChannel,
         });
       }
     });
@@ -137,8 +137,8 @@ export function setupWebSocket(wss: WebSocketServer) {
   }, 30000);
 }
 
-function broadcastToRoom(roomName: string, msg: object) {
-  rooms.get(roomName)?.forEach((client) => {
+function broadcastToChannel(channelId: number, msg: object) {
+  channels.get(channelId)?.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
       client.send(JSON.stringify(msg));
     }
