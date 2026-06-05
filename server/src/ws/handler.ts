@@ -4,20 +4,23 @@ import { messages } from "../db/schema";
 import { eq } from "drizzle-orm";
 
 interface ChatSocket extends WebSocket {
-  currentRoom?: string;
+  currentChannel?: number;
+  currentServer?: number;
   userName?: string;
   isAlive: boolean;
 }
 
 interface ChatMessage {
-  type: "join-room" | "chat" | "leave-room" | "typing";
+  type: "join-channel" | "chat" | "leave-channel" | "typing";
   name: string;
-  room: string;
+  channelId: number;
+  serverId: number;
   text?: string;
   timestamp?: string;
 }
 
-const rooms = new Map<string, Set<ChatSocket>>();
+//channels map uses ChannelId as key
+const channels = new Map<number, Set<ChatSocket>>();
 
 export function setupWebSocket(wss: WebSocketServer) {
   wss.on("connection", (rawSocket: WebSocket) => {
@@ -37,47 +40,41 @@ export function setupWebSocket(wss: WebSocketServer) {
       }
 
       switch (msg.type) {
-        case "join-room": {
-          if (socket.currentRoom) {
-            rooms.get(socket.currentRoom)?.delete(socket);
+        //update join-room -> join-channel
+        case "join-channel": {
+          if (socket.currentChannel) {
+            channels.get(socket.currentChannel)?.delete(socket);
           }
-          if (!rooms.has(msg.room)) rooms.set(msg.room, new Set());
-          rooms.get(msg.room)!.add(socket);
-          socket.currentRoom = msg.room;
+          if (!channels.has(msg.channelId))
+            channels.set(msg.channelId, new Set());
+          channels.get(msg.channelId)!.add(socket);
+          socket.currentChannel = msg.channelId;
+          socket.currentServer = msg.serverId;
           socket.userName = msg.name;
 
-          // send exiting members to the new joiner
-          const existingMembers = [...rooms.get(msg.room)!]
+          //send existing members
+          const existingMembers = [...channels.get(msg.channelId)!]
             .filter((s) => s !== socket && s.userName)
             .map((s) => s.userName!);
-
           socket.send(
-            JSON.stringify({
-              type: "members",
-              members: existingMembers,
-            }),
+            JSON.stringify({ type: "members", members: existingMembers }),
           );
 
-          // send last 50 messages from DB on join
+          // send message history for this channel
           const history = await db
             .select()
             .from(messages)
-            .where(eq(messages.room, msg.room))
+            .where(eq(messages.channelId, msg.channelId))
             .orderBy(messages.timestamp)
             .limit(50);
-
           socket.send(JSON.stringify({ type: "history", messages: history }));
 
-          broadcastToRoom(msg.room, {
-            type: "join",
-            name: msg.name,
-            room: msg.room,
-          });
+          broadcastToChannel(msg.channelId, { type: "join", name: msg.name });
           break;
         }
 
         case "chat": {
-          if (!socket.currentRoom || !msg.text) return;
+          if (!socket.currentChannel || !msg.text) return;
 
           // save to database
           const [saved] = await db
@@ -85,30 +82,30 @@ export function setupWebSocket(wss: WebSocketServer) {
             .values({
               name: msg.name,
               text: msg.text,
-              room: socket.currentRoom,
+              channelId: socket.currentChannel,
             })
             .returning();
 
-          broadcastToRoom(socket.currentRoom, {
+          broadcastToChannel(socket.currentChannel, {
             type: "chat",
             id: saved.id.toString(),
             name: saved.name,
             text: saved.text,
-            room: saved.room,
+            channelId: saved.channelId,
             timestamp: saved.timestamp.toISOString(),
           });
           break;
         }
 
-        case "leave-room": {
-          if (socket.currentRoom) {
-            rooms.get(socket.currentRoom)?.delete(socket);
-            broadcastToRoom(socket.currentRoom, {
+        case "leave-channel": {
+          if (socket.currentChannel) {
+            channels.get(socket.currentChannel)?.delete(socket);
+            broadcastToChannel(socket.currentChannel, {
               type: "leave",
               name: msg.name,
-              room: socket.currentRoom,
+              channelId: socket.currentChannel,
             });
-            socket.currentRoom = undefined;
+            socket.currentChannel = undefined;
           }
           break;
         }
@@ -116,12 +113,12 @@ export function setupWebSocket(wss: WebSocketServer) {
     });
 
     socket.on("close", () => {
-      if (socket.currentRoom) {
-        rooms.get(socket.currentRoom)?.delete(socket);
-        broadcastToRoom(socket.currentRoom, {
+      if (socket.currentChannel) {
+        channels.get(socket.currentChannel)?.delete(socket);
+        broadcastToChannel(socket.currentChannel, {
           type: "leave",
           name: socket.userName ?? "unknown",
-          room: socket.currentRoom,
+          channelId: socket.currentChannel,
         });
       }
     });
@@ -141,8 +138,8 @@ export function setupWebSocket(wss: WebSocketServer) {
   }, 30000);
 }
 
-function broadcastToRoom(roomName: string, msg: object) {
-  rooms.get(roomName)?.forEach((client) => {
+function broadcastToChannel(channelId: number, msg: object) {
+  channels.get(channelId)?.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
       client.send(JSON.stringify(msg));
     }
