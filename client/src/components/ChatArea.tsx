@@ -19,16 +19,16 @@ export function ChatArea({ members }: ChatAreaProps) {
     dispatch,
     socketRef,
     bottomRef,
-    currentRoom,
+    currentChannel,
   } = ctx;
 
   const send = useCallback(() => {
     const trimmed = text.trim();
-    if (!trimmed || !connected || !socketRef.current || !currentRoom) return;
+    if (!trimmed || !connected || !socketRef.current || !currentChannel) return;
     socketRef.current.send(
       JSON.stringify({
         type: "chat",
-        room: currentRoom,
+        channelId: currentChannel.id,
         name,
         text: trimmed,
         timestamp: new Date().toLocaleTimeString([], {
@@ -38,13 +38,13 @@ export function ChatArea({ members }: ChatAreaProps) {
       }),
     );
     dispatch({ type: "CLEAR_TEXT" });
-  }, [text, name, connected, currentRoom, dispatch, socketRef]);
+  }, [text, name, connected, currentChannel, dispatch, socketRef]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, bottomRef]);
 
-  if (!currentRoom) {
+  if (!currentChannel) {
     return (
       <div className="flex-1 flex items-center justify-center bg-zinc-900">
         <div className="text-center">
@@ -71,7 +71,7 @@ export function ChatArea({ members }: ChatAreaProps) {
           </div>
           <div>
             <p className="text-zinc-100 text-sm font-medium leading-none">
-              {currentRoom}
+              #{currentChannel.name}
             </p>
             <p className="text-zinc-500 text-[10px] mt-0.5">
               {members.length} member{members.length !== 1 ? "s" : ""}
@@ -117,7 +117,7 @@ export function ChatArea({ members }: ChatAreaProps) {
         <div className="flex items-center gap-2 bg-zinc-800 rounded-xl px-4 py-2.5 border border-zinc-700/60 focus-within:border-violet-500/60 transition-colors">
           <input
             className="flex-1 bg-transparent text-zinc-100 text-sm outline-none placeholder:text-zinc-600"
-            placeholder={`Message #${currentRoom}`}
+            placeholder={`Message #${currentChannel.name}`}
             value={text}
             onChange={(e) =>
               dispatch({ type: "SET_TEXT", payload: e.target.value })
