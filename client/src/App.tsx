@@ -7,7 +7,7 @@ import { MembersPanel } from "./components/MembersPanel";
 import { NameScreen } from "./components/NameScreen";
 import { CreateServerModal } from "./components/CreateServerModal";
 import { useWebSocket } from "./hooks/useWebSocket";
-import { Server, Channel } from "./types";
+import type { Server, Channel } from "./types";
 
 export function App() {
   const ctx = useContext(ChatContext)!;

@@ -19,16 +19,16 @@ export function ChatArea({ members }: ChatAreaProps) {
     dispatch,
     socketRef,
     bottomRef,
-    currentRoom,
+    currentChannel,
   } = ctx;
 
   const send = useCallback(() => {
     const trimmed = text.trim();
-    if (!trimmed || !connected || !socketRef.current || !currentRoom) return;
+    if (!trimmed || !connected || !socketRef.current || !currentChannel) return;
     socketRef.current.send(
       JSON.stringify({
         type: "chat",
-        room: currentRoom,
+        channelId: currentChannel.id,
         name,
         text: trimmed,
         timestamp: new Date().toLocaleTimeString([], {
@@ -38,13 +38,13 @@ export function ChatArea({ members }: ChatAreaProps) {
       }),
     );
     dispatch({ type: "CLEAR_TEXT" });
-  }, [text, name, connected, currentRoom, dispatch, socketRef]);
+  }, [text, name, connected, currentChannel, dispatch, socketRef]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, bottomRef]);
 
-  if (!currentRoom) {
+  if (!currentChannel) {
     return (
       <div className="flex-1 flex items-center justify-center bg-zinc-900">
         <div className="text-center">
