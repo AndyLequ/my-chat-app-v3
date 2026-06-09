@@ -71,7 +71,7 @@ export function ChatArea({ members }: ChatAreaProps) {
           </div>
           <div>
             <p className="text-zinc-100 text-sm font-medium leading-none">
-              {currentRoom}
+              #{currentChannel.name}
             </p>
             <p className="text-zinc-500 text-[10px] mt-0.5">
               {members.length} member{members.length !== 1 ? "s" : ""}
@@ -117,7 +117,7 @@ export function ChatArea({ members }: ChatAreaProps) {
         <div className="flex items-center gap-2 bg-zinc-800 rounded-xl px-4 py-2.5 border border-zinc-700/60 focus-within:border-violet-500/60 transition-colors">
           <input
             className="flex-1 bg-transparent text-zinc-100 text-sm outline-none placeholder:text-zinc-600"
-            placeholder={`Message #${currentRoom}`}
+            placeholder={`Message #${currentChannel.name}`}
             value={text}
             onChange={(e) =>
               dispatch({ type: "SET_TEXT", payload: e.target.value })
