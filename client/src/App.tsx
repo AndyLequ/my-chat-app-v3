@@ -24,6 +24,7 @@ export function App() {
   const [servers, setServers] = useState<Server[]>([]);
   const [channels, setChannels] = useState<Channel[]>([]);
   const [showCreateServer, setShowCreateServer] = useState(false);
+  const [showBrowserServers, setShowBrowserServers] = useState(false);
 
   // deleting old useEffect tracking members from messages
   // members now comes directly from context
