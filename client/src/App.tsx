@@ -8,6 +8,7 @@ import { NameScreen } from "./components/NameScreen";
 import { CreateServerModal } from "./components/CreateServerModal";
 import { useWebSocket } from "./hooks/useWebSocket";
 import type { Server, Channel } from "./types";
+import { BrowseServersModal } from "./components/BrowseServersModal";
 
 export function App() {
   const ctx = useContext(ChatContext)!;
@@ -24,7 +25,7 @@ export function App() {
   const [servers, setServers] = useState<Server[]>([]);
   const [channels, setChannels] = useState<Channel[]>([]);
   const [showCreateServer, setShowCreateServer] = useState(false);
-  const [showBrowserServers, setShowBrowserServers] = useState(false);
+  const [showBrowseServers, setShowBrowseServers] = useState(false);
 
   // deleting old useEffect tracking members from messages
   // members now comes directly from context
@@ -79,7 +80,7 @@ export function App() {
       body: JSON.stringify({ userName: name }),
     });
     setServers((prev) => [...prev, server]);
-    setShowBrowserServers(false);
+    setShowBrowseServers(false);
     handleJoinServer(server);
   }
 
@@ -126,6 +127,7 @@ export function App() {
           servers={servers}
           onJoinServer={handleJoinServer}
           onCreateServer={() => setShowCreateServer(true)}
+          onBrowseServers={() => setShowBrowseServers(true)}
         />
         <Sidebar
           channels={channels}
@@ -140,6 +142,13 @@ export function App() {
         <CreateServerModal
           onClose={() => setShowCreateServer(false)}
           onCreate={handleCreateServer}
+        />
+      )}
+      {showBrowseServers && (
+        <BrowseServersModal
+          onClose={() => setShowBrowseServers(false)}
+          onJoin={handleBrowseJoin}
+          myServerIds={servers.map((s) => s.id)}
         />
       )}
     </>
