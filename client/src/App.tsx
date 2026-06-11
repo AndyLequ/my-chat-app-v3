@@ -31,12 +31,13 @@ export function App() {
 
   useWebSocket();
 
-  // fetch all servers on mount
+  // fetch servers the user has joined (instead of ALL servers)
   useEffect(() => {
-    fetch("http://localhost:8080/api/serverse")
+    if (!name) return;
+    fetch(`http://localhost:8080/api/users/${name}/servers`)
       .then((r) => r.json())
       .then(setServers);
-  }, []);
+  }, [name]);
 
   // fetch channels when server changes
   useEffect(() => {
@@ -69,6 +70,17 @@ export function App() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userName: name }),
     });
+  }
+
+  async function handleBrowseJoin(server: Server) {
+    await fetch(`http://localhost:8080/api/servers/${server.id}/join`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userName: name }),
+    });
+    setServers((prev) => [...prev, server]);
+    setShowBrowserServers(false);
+    handleJoinServer(server);
   }
 
   async function handleCreateServer(serverName: string, description: string) {
