@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "../db";
 import { servers, channels, serverMembers } from "../db/schema";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 
 const router = Router();
 
@@ -52,6 +52,27 @@ router.get("/:id/members", async (req, res) => {
     .from(serverMembers)
     .where(eq(serverMembers.serverId, serverId));
   res.json(results);
+});
+
+router.get("/users/:userName/servers", async (req, res) => {
+  const { userName } = req.params;
+  const memberships = await db
+    .select()
+    .from(serverMembers)
+    .where(eq(serverMembers.userName, userName));
+
+  const serverIds = memberships.map((m) => m.serverId);
+  if (serverIds.length === 0) {
+    res.json([]);
+    return;
+  }
+
+  const joined = await db
+    .select()
+    .from(servers)
+    .where(inArray(servers.id, serverIds));
+
+  res.json(joined);
 });
 
 export default router;
