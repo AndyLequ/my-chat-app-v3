@@ -8,7 +8,7 @@ interface CreateServerModalProps {
 export function CreateServerModal({
   onClose,
   onCreate,
-}: createServerModalProps) {
+}: CreateServerModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
