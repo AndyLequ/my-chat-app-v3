@@ -8,6 +8,7 @@ import { NameScreen } from "./components/NameScreen";
 import { CreateServerModal } from "./components/CreateServerModal";
 import { useWebSocket } from "./hooks/useWebSocket";
 import type { Server, Channel } from "./types";
+import { BrowseServersModal } from "./components/BrowseServersModal";
 
 export function App() {
   const ctx = useContext(ChatContext)!;
@@ -24,18 +25,20 @@ export function App() {
   const [servers, setServers] = useState<Server[]>([]);
   const [channels, setChannels] = useState<Channel[]>([]);
   const [showCreateServer, setShowCreateServer] = useState(false);
+  const [showBrowseServers, setShowBrowseServers] = useState(false);
 
   // deleting old useEffect tracking members from messages
   // members now comes directly from context
 
   useWebSocket();
 
-  // fetch all servers on mount
+  // fetch servers the user has joined (instead of ALL servers)
   useEffect(() => {
-    fetch("http://localhost:8080/api/serverse")
+    if (!name) return;
+    fetch(`http://localhost:8080/api/users/${name}/servers`)
       .then((r) => r.json())
       .then(setServers);
-  }, []);
+  }, [name]);
 
   // fetch channels when server changes
   useEffect(() => {
@@ -68,6 +71,17 @@ export function App() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userName: name }),
     });
+  }
+
+  async function handleBrowseJoin(server: Server) {
+    await fetch(`http://localhost:8080/api/servers/${server.id}/join`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userName: name }),
+    });
+    setServers((prev) => [...prev, server]);
+    setShowBrowseServers(false);
+    handleJoinServer(server);
   }
 
   async function handleCreateServer(serverName: string, description: string) {
@@ -113,6 +127,7 @@ export function App() {
           servers={servers}
           onJoinServer={handleJoinServer}
           onCreateServer={() => setShowCreateServer(true)}
+          onBrowseServers={() => setShowBrowseServers(true)}
         />
         <Sidebar
           channels={channels}
@@ -127,6 +142,13 @@ export function App() {
         <CreateServerModal
           onClose={() => setShowCreateServer(false)}
           onCreate={handleCreateServer}
+        />
+      )}
+      {showBrowseServers && (
+        <BrowseServersModal
+          onClose={() => setShowBrowseServers(false)}
+          onJoin={handleBrowseJoin}
+          myServerIds={servers.map((s) => s.id)}
         />
       )}
     </>

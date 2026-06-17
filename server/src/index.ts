@@ -1,4 +1,5 @@
 import serversRouter from "./routes/servers";
+import userRouter from "./routes/users";
 
 import express from "express";
 import { createServer } from "http";
@@ -18,7 +19,7 @@ app.use(express.json());
 // REST routes
 app.use("/api/messages", messagesRouter);
 app.use("/api/servers", serversRouter);
-
+app.use("/api/users", userRouter);
 // WebSocket
 setupWebSocket(wss);
 
