@@ -3,11 +3,13 @@ import { useState } from "react";
 interface CreateServerModalProps {
   onClose: () => void;
   onCreate: (name: string, description: string) => void;
+  error?: string | null;
 }
 
 export function CreateServerModal({
   onClose,
   onCreate,
+  error,
 }: CreateServerModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -16,6 +18,11 @@ export function CreateServerModal({
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
       <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 w-full max-w-sm flex flex-col gap-4">
         <h2 className="text-zinc-100 text-lg font-semibold">Create a Server</h2>
+        {error && (
+          <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+            {error}
+          </p>
+        )}
         <input
           className="bg-zinc-800 text-zinc-100 border border-zinc-700 rounded-xl px-4 py-3 text-sm outline-none focus:border-violet-500 transition-colors placeholder:text-zinc-600"
           placeholder="Server name..."

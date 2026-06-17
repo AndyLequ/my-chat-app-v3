@@ -26,6 +26,7 @@ export function App() {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [showCreateServer, setShowCreateServer] = useState(false);
   const [showBrowseServers, setShowBrowseServers] = useState(false);
+  const [createServerError, setCreateServerError] = useState<string | null>(null);
 
   // deleting old useEffect tracking members from messages
   // members now comes directly from context
@@ -106,15 +107,47 @@ export function App() {
   }
 
   async function handleCreateServer(serverName: string, description: string) {
-    const res = await fetch("http://localhost:8080/api/servers", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: serverName, description }),
-    });
-    const newServer = await res.json();
-    setServers((prev) => [...prev, newServer]);
-    setShowCreateServer(false);
-    handleJoinServer(newServer);
+    try {
+      setCreateServerError(null);
+
+      const res = await fetch("http://localhost:8080/api/servers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: serverName, description }),
+      });
+
+      if (!res.ok) {
+        const rawText = await res.text().catch(() => "");
+
+        if (res.status === 409 || rawText.includes("already exists")) {
+          setCreateServerError("A server with that name already exists.");
+          return;
+        }
+
+        let message = `Failed to create server (${res.status})`;
+
+        if (rawText) {
+          try {
+            const parsed = JSON.parse(rawText);
+            if (parsed?.error) {
+              message = parsed.error;
+            }
+          } catch {
+            message = rawText;
+          }
+        }
+
+        throw new Error(message);
+      }
+
+      const newServer = await res.json();
+      setServers((prev) => [...prev, newServer]);
+      setShowCreateServer(false);
+      handleJoinServer(newServer);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      setCreateServerError(message);
+    }
   }
 
   function handleJoinChannel(channel: Channel) {
@@ -146,8 +179,12 @@ export function App() {
 
       {showCreateServer && (
         <CreateServerModal
-          onClose={() => setShowCreateServer(false)}
+          onClose={() => {
+            setShowCreateServer(false);
+            setCreateServerError(null);
+          }}
           onCreate={handleCreateServer}
+          error={createServerError}
         />
       )}
       {showBrowseServers && (
