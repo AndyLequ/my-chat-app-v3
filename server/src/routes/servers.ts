@@ -14,6 +14,14 @@ router.get("/", async (req, res) => {
 router.post("/", async (req, res) => {
   try {
     const { name, description } = req.body;
+    
+    // checking if a server with the same name already exists
+    const existing = await db
+      .select()
+      .from(servers)
+      .where(eq(servers.name, name))
+      .limit(1);
+    
     const [server] = await db
       .insert(servers)
       .values({ name, description })
