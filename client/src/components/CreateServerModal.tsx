@@ -9,7 +9,6 @@ interface CreateServerModalProps {
 export function CreateServerModal({
   onClose,
   onCreate,
-  error,
 }: CreateServerModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -41,7 +40,8 @@ export function CreateServerModal({
           className="bg-zinc-800 text-zinc-100 border border-zinc-700 rounded-xl px-4 py-3 text-sm outline-none focus:border-violet-500 transition-colors placeholder:text-zinc-600"
           placeholder="Server name..."
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => {setName(e.target.value); setError('');}}
+          onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
           autoFocus
         />
         <input
@@ -58,12 +58,11 @@ export function CreateServerModal({
             Cancel
           </button>
           <button
-            onClick={() => {
-              if (name.trim()) onCreate(name, description);
-            }}
+            onClick={handleCreate}
+            disabled={loading || !name.trim()}
             className="flex-1 bg-violet-600 hover:bg-violet-500 text-white rounded-xl px-4 py-2.5 text-sm font-medium transition-colors"
           >
-            Create
+            {loading ? "Creating..." : "Create"}
           </button>
         </div>
       </div>
