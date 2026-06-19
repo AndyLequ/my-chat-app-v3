@@ -22,6 +22,12 @@ router.post("/", async (req, res) => {
       .where(eq(servers.name, name))
       .limit(1);
     
+
+    if(existing.length > 0){
+      res.status(409).json({error: "A server with that name already exists."});
+      return;
+    }
+      
     const [server] = await db
       .insert(servers)
       .values({ name, description })
