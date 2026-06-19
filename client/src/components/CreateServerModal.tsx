@@ -13,6 +13,20 @@ export function CreateServerModal({
 }: CreateServerModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+
+  async function handleCreate() {
+    if (!name.trim()) return;
+    setError('');
+    setLoading(true);
+    const result = await onCreate(name, description);
+    setLoading(false);
+    if(result?.error){
+      setError(result.error);
+    }
+  }
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
