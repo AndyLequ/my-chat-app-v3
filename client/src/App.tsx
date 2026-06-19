@@ -107,47 +107,24 @@ export function App() {
   }
 
   async function handleCreateServer(serverName: string, description: string) {
-    try {
-      setCreateServerError(null);
-
+    
       const res = await fetch("http://localhost:8080/api/servers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: serverName, description }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        const rawText = await res.text().catch(() => "");
-
-        if (res.status === 409 || rawText.includes("already exists")) {
-          setCreateServerError("A server with that name already exists.");
-          return;
-        }
-
-        let message = `Failed to create server (${res.status})`;
-
-        if (rawText) {
-          try {
-            const parsed = JSON.parse(rawText);
-            if (parsed?.error) {
-              message = parsed.error;
-            }
-          } catch {
-            message = rawText;
-          }
-        }
-
-        throw new Error(message);
+        return {error: data.error};
       }
 
-      const newServer = await res.json();
-      setServers((prev) => [...prev, newServer]);
+      setServers((prev) => [...prev, data]);
       setShowCreateServer(false);
-      handleJoinServer(newServer);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Unknown error";
-      setCreateServerError(message);
-    }
+      handleJoinServer(data);
+      return {};
+    
   }
 
   function handleJoinChannel(channel: Channel) {
