@@ -26,6 +26,7 @@ export function App() {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [showCreateServer, setShowCreateServer] = useState(false);
   const [showBrowseServers, setShowBrowseServers] = useState(false);
+  const [createServerError, setCreateServerError] = useState<string | null>(null);
 
   // deleting old useEffect tracking members from messages
   // members now comes directly from context
@@ -61,6 +62,27 @@ export function App() {
     }
   }, [currentChannel, dispatch]);
 
+  useEffect(() => {
+    if (
+      !currentChannel ||
+      !currentServer ||
+      !name ||
+      !socketRef.current ||
+      socketRef.current.readyState !== WebSocket.OPEN
+    ) {
+      return;
+    }
+
+    socketRef.current.send(
+      JSON.stringify({
+        type: "join-channel",
+        name,
+        channelId: currentChannel.id,
+        serverId: currentServer.id,
+      }),
+    );
+  }, [currentChannel, currentServer, name, socketRef]);
+
   async function handleJoinServer(server: Server) {
     dispatch({ type: "SET_SERVER", payload: server });
     dispatch({ type: "SET_CHANNEL", payload: null });
@@ -85,37 +107,31 @@ export function App() {
   }
 
   async function handleCreateServer(serverName: string, description: string) {
-    const res = await fetch("http://localhost:8080/api/servers", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: serverName, description }),
-    });
-    const newServer = await res.json();
-    setServers((prev) => [...prev, newServer]);
-    setShowCreateServer(false);
-    handleJoinServer(newServer);
+    
+      const res = await fetch("http://localhost:8080/api/servers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: serverName, description }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        return {error: data.error};
+      }
+
+      setServers((prev) => [...prev, data]);
+      setShowCreateServer(false);
+      handleJoinServer(data);
+      return {};
+    
   }
 
   function handleJoinChannel(channel: Channel) {
-    if (currentChannel) {
-      socketRef.current?.send(
-        JSON.stringify({
-          type: "leave-channel",
-          name,
-          channelId: currentChannel.id,
-        }),
-      );
-    }
+    if (currentChannel?.id === channel.id) return;
 
+    dispatch({ type: "CLEAR_MESSAGES" });
     dispatch({ type: "SET_CHANNEL", payload: channel });
-    socketRef.current?.send(
-      JSON.stringify({
-        type: "join-channel",
-        name,
-        channelId: channel.id,
-        serverId: currentServer?.id,
-      }),
-    );
   }
 
   if (!nameSet) return <NameScreen />;
@@ -140,8 +156,12 @@ export function App() {
 
       {showCreateServer && (
         <CreateServerModal
-          onClose={() => setShowCreateServer(false)}
+          onClose={() => {
+            setShowCreateServer(false);
+            setCreateServerError(null);
+          }}
           onCreate={handleCreateServer}
+          error={createServerError}
         />
       )}
       {showBrowseServers && (
