@@ -28,6 +28,11 @@ router.post("/", async (req, res) => {
 
 router.get("/:id/channels", async (req, res) => {
   const serverId = parseInt(req.params.id);
+  if (isNaN(serverId)) {
+    res.status(400).json({ error: "Invalid server ID" });
+    return;
+  }
+
   const result = await db
     .select()
     .from(channels)
