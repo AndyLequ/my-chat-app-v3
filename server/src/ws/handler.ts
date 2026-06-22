@@ -59,6 +59,30 @@ export function setupWebSocket(wss: WebSocketServer) {
               name: socket.userName,
             });
           }
+
+          if(!serverPresence.has(msg.serverId)){
+            serverPresence.set(msg.serverId, new Set());
+          }
+          serverPresence.get(msg.serverId)!.add(socket);
+          socket.currentServer = msg.serverId;
+          socket.userName = msg.name;
+
+          // send current online members of this server to the joining user
+          const onlineMembers = [...serverPresence.get(msg.serverId)!]
+            .filter(s => s !=== socket && s.userName)
+            .map(s => s.userName!);
+
+          socket.send(JSON.stringify({
+            type: 'server-members',
+            members: onlineMembers,
+          }));
+
+          // tell everyone else in the server this user came online
+          broadcastToServerExcludingSender(socket, msg.serverId, {
+            type: 'server-member-joined',
+            name: msg.name,
+          });
+          break;
         }
 
         //update join-room -> join-channel
