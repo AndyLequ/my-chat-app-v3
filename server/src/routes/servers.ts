@@ -55,6 +55,11 @@ router.post("/", async (req, res) => {
 
 router.get("/:id/channels", async (req, res) => {
   const serverId = parseInt(req.params.id);
+  if (isNaN(serverId)) {
+    res.status(400).json({ error: "Invalid server ID" });
+    return;
+  }
+
   const result = await db
     .select()
     .from(channels)
@@ -66,14 +71,15 @@ router.post("/:id/join", async (req, res) => {
   const serverId = parseInt(req.params.id);
   const { userName } = req.body;
 
+  // check if already a member
   const existing = await db
     .select()
     .from(serverMembers)
     .where(eq(serverMembers.serverId, serverId))
-    .limit(1);  
+    .limit(1);
 
-  if(existing.length > 0){
-    res.json(existing[0])// already a member, just return it
+  if (existing.length > 0) {
+    res.json(existing[0]); // already a member
     return;
   }
 
@@ -86,6 +92,11 @@ router.post("/:id/join", async (req, res) => {
 
 router.get("/:id/members", async (req, res) => {
   const serverId = parseInt(req.params.id);
+  if (isNaN(serverId)) {
+    res.status(400).json({ error: "Invalid server ID" });
+    return;
+  }
+
   const results = await db
     .select()
     .from(serverMembers)
