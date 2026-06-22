@@ -11,7 +11,13 @@ interface ChatSocket extends WebSocket {
 }
 
 interface ChatMessage {
-  type: "join-channel" | "chat" | "leave-channel" | "typing";
+  type:
+    | "join-channel"
+    | "chat"
+    | "leave-channel"
+    | "typing"
+    | "join-server"
+    | "leave-server";
   name: string;
   channelId: number;
   serverId: number;
@@ -21,7 +27,7 @@ interface ChatMessage {
 
 //channels map uses ChannelId as key
 const channels = new Map<number, Set<ChatSocket>>();
-const serverPresence = new Map<number, Set<ChatSocket>>(); // <- new
+const serverPresence = new Map<number, Set<ChatSocket>>(); // presence for user in server
 
 export function setupWebSocket(wss: WebSocketServer) {
   wss.on("connection", (rawSocket: WebSocket) => {
@@ -41,6 +47,20 @@ export function setupWebSocket(wss: WebSocketServer) {
       }
 
       switch (msg.type) {
+        // called when user selects a server
+        case "join-server": {
+          if (!msg.serverId) return;
+
+          // leave previous server presence if switching
+          if (socket.currentServer && socket.currentServer !== msg.serverId) {
+            serverPresence.get(socket.currentServer)?.delete(socket);
+            broadcastToServer(socket.currentServer, {
+              type: "server-member-left",
+              name: socket.userName,
+            });
+          }
+        }
+
         //update join-room -> join-channel
         case "join-channel": {
           if (socket.currentChannel) {
