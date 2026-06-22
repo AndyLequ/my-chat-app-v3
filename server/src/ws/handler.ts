@@ -21,6 +21,7 @@ interface ChatMessage {
 
 //channels map uses ChannelId as key
 const channels = new Map<number, Set<ChatSocket>>();
+const serverPresence = new Map<number, Set<ChatSocket>>(); // <- new
 
 export function setupWebSocket(wss: WebSocketServer) {
   wss.on("connection", (rawSocket: WebSocket) => {
