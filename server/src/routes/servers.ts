@@ -12,18 +12,45 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-  const { name, description } = req.body;
-  const [server] = await db
-    .insert(servers)
-    .values({ name, description })
-    .returning();
+  try {
+    const { name, description } = req.body;
+    
+    // checking if a server with the same name already exists
+    const existing = await db
+      .select()
+      .from(servers)
+      .where(eq(servers.name, name))
+      .limit(1);
+    
 
-  await db.insert(channels).values([
-    { name: "general", serverId: server.id },
-    { name: "random", serverId: server.id },
-  ]);
+    if(existing.length > 0){
+      res.status(409).json({error: "A server with that name already exists."});
+      return;
+    }
+      
+    const [server] = await db
+      .insert(servers)
+      .values({ name, description })
+      .returning();
 
-  res.json(server);
+    await db.insert(channels).values([
+      { name: "general", serverId: server.id },
+      { name: "random", serverId: server.id },
+    ]);
+
+    res.status(201).json(server);
+  } catch (err) {
+    const error = err as { code?: string };
+
+    if (error.code === "23505") {
+      return res.status(409).json({
+        error: "A server with that name already exists.",
+      });
+    }
+
+    console.error("Error creating server:", err);
+    return res.status(500).json({ error: "Failed to create server." });
+  }
 });
 
 router.get("/:id/channels", async (req, res) => {
