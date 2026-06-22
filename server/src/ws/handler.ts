@@ -87,25 +87,20 @@ export function setupWebSocket(wss: WebSocketServer) {
 
         //update join-room -> join-channel
         case "join-channel": {
+          if(!msg.channelId) return;
+
+          // leave old channel
           if (socket.currentChannel) {
             channels.get(socket.currentChannel)?.delete(socket);
           }
+
           if (!channels.has(msg.channelId))
             channels.set(msg.channelId, new Set());
           channels.get(msg.channelId)!.add(socket);
           socket.currentChannel = msg.channelId;
-          socket.currentServer = msg.serverId;
           socket.userName = msg.name;
 
-          //send existing members
-          const existingMembers = [...channels.get(msg.channelId)!]
-            .filter((s) => s !== socket && s.userName)
-            .map((s) => s.userName!);
-          socket.send(
-            JSON.stringify({ type: "members", members: existingMembers }),
-          );
-
-          // send message history for this channel
+          // send message history only - members come from server presence now
           const history = await db
             .select()
             .from(messages)
