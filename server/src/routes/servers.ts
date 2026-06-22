@@ -38,6 +38,19 @@ router.get("/:id/channels", async (req, res) => {
 router.post("/:id/join", async (req, res) => {
   const serverId = parseInt(req.params.id);
   const { userName } = req.body;
+
+  // check if already a member
+  const existing = await db
+    .select()
+    .from(serverMembers)
+    .where(eq(serverMembers.serverId, serverId))
+    .limit(1);
+
+  if (existing.length > 0) {
+    res.json(existing[0]); // already a member
+    return;
+  }
+
   const [member] = await db
     .insert(serverMembers)
     .values({ serverId, userName })
