@@ -65,6 +65,11 @@ router.post("/:id/join", async (req, res) => {
 
 router.get("/:id/members", async (req, res) => {
   const serverId = parseInt(req.params.id);
+  if (isNaN(serverId)) {
+    res.status(400).json({ error: "Invalid server ID" });
+    return;
+  }
+
   const results = await db
     .select()
     .from(serverMembers)
