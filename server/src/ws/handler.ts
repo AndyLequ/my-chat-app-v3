@@ -149,8 +149,25 @@ export function setupWebSocket(wss: WebSocketServer) {
           }
           break;
         }
+
+
+        case "leave-server": {
+          if(socket.currentServer){
+            serverPresence.get(socket.currentServer)?.delete(socket);
+            broadcastToServer(socket.currentServer, {
+              type: 'server-member-left',
+              name: socket.userName,
+            });
+            socket.currentServer = undefined;
+          }
+          break;
+        }
       }
+
+      
+    
     });
+
 
     socket.on("close", () => {
       if (socket.currentChannel) {
