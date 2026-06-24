@@ -69,7 +69,7 @@ export function setupWebSocket(wss: WebSocketServer) {
 
           // send current online members of this server to the joining user
           const onlineMembers = [...serverPresence.get(msg.serverId)!]
-            .filter((s) => s !== socket && s.userName)
+            .filter((s) => s.userName)
             .map((s) => s.userName!);
 
           socket.send(

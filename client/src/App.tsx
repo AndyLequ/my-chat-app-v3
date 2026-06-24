@@ -30,9 +30,6 @@ export function App() {
     null,
   );
 
-  // deleting old useEffect tracking members from messages
-  // members now comes directly from context
-
   useWebSocket();
 
   // fetch servers the user has joined (instead of ALL servers)
@@ -51,18 +48,11 @@ export function App() {
       .then(setChannels);
   }, [currentServer]);
 
-  // track members
   useEffect(() => {
-    if (currentChannel && name) {
-      dispatch({ type: "ADD_MEMBER", payload: name });
-    }
-  }, [currentChannel, name, dispatch]);
-
-  useEffect(() => {
-    if (!currentChannel) {
+    if (!currentServer) {
       dispatch({ type: "SET_MEMBER_LIST", payload: [] });
     }
-  }, [currentChannel, dispatch]);
+  }, [currentServer, dispatch]);
 
   useEffect(() => {
     if (
@@ -109,6 +99,9 @@ export function App() {
         serverId: server.id,
       }),
     );
+
+    //adding self to members in server
+    dispatch({ type: "ADD_MEMBER", payload: name });
 
     // register membership in DB
     await fetch(`http://localhost:8080/api/servers/${server.id}/join`, {
