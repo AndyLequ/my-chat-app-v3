@@ -23,30 +23,45 @@ export function useWebSocket() {
       });
 
       ws.addEventListener("message", (e: MessageEvent) => {
-        const msg = JSON.parse(e.data) as ChatMessage & {
-          messages?: ChatMessage[];
-        };
+        const msg = JSON.parse(e.data) as ChatMessage;
 
-        if (msg.type === "history" && msg.messages) {
-          // load message history on room join
-          dispatch({ type: "SET_MESSAGES", payload: msg.messages });
-        } else if (msg.type === "members" && msg.members) {
-          // set the existing member list directly
-          dispatch({ type: "SET_MEMBER_LIST", payload: msg.members });
-        } else if (msg.type === "chat") {
-          dispatch({ type: "ADD_MESSAGE", payload: msg });
-        } else if (msg.type === "join") {
-          dispatch({
-            type: "ADD_MESSAGE",
-            payload: { type: "join", name: msg.name },
-          });
-          dispatch({ type: "ADD_MEMBER", payload: msg.name });
-        } else if (msg.type === "leave") {
-          dispatch({
-            type: "ADD_MESSAGE",
-            payload: { type: "leave", name: msg.name },
-          });
-          dispatch({ type: "REMOVE_MEMBER", payload: msg.name });
+        switch (msg.type) {
+          case "history":
+            dispatch({ type: "SET_MESSAGES", payload: msg.messages ?? [] });
+            break;
+
+          case "server-members":
+            // replace member list with current server online members
+            dispatch({ type: "SET_MEMBER_LIST", payload: msg.members ?? [] });
+            break;
+
+          case "server-member-joined":
+            // someone came online in this server
+            dispatch({ type: "ADD_MEMBER", payload: msg.name });
+            break;
+
+          case "server-member-left":
+            // someone went offline in this server
+            dispatch({ type: "REMOVE_MEMBER", payload: msg.name });
+            break;
+
+          case "chat":
+            dispatch({ type: "ADD_MESSAGE", payload: msg });
+            break;
+
+          case "join":
+            dispatch({
+              type: "ADD_MESSAGE",
+              payload: { type: "join", name: msg.name },
+            });
+            break;
+
+          case "leave":
+            dispatch({
+              type: "ADD_MESSAGE",
+              payload: { type: "leave", name: msg.name },
+            });
+            break;
         }
       });
     }

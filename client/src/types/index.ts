@@ -21,12 +21,22 @@ export interface Channel {
 
 export interface ChatMessage {
   id?: string;
-  type: "chat" | "join" | "leave" | "history" | "members";
+  type:
+    | "chat"
+    | "join"
+    | "leave"
+    | "history"
+    | "members"
+    | "server-members"
+    | "server-member-joined"
+    | "server-member-left";
   name: string;
   text?: string;
   room?: string;
+  channelId?: number;
   timestamp?: string;
   members?: string[];
+  messages?: ChatMessage[];
 }
 export interface AppState {
   messages: ChatMessage[];

@@ -26,10 +26,9 @@ export function App() {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [showCreateServer, setShowCreateServer] = useState(false);
   const [showBrowseServers, setShowBrowseServers] = useState(false);
-  const [createServerError, setCreateServerError] = useState<string | null>(null);
-
-  // deleting old useEffect tracking members from messages
-  // members now comes directly from context
+  const [createServerError, setCreateServerError] = useState<string | null>(
+    null,
+  );
 
   useWebSocket();
 
@@ -49,18 +48,11 @@ export function App() {
       .then(setChannels);
   }, [currentServer]);
 
-  // track members
   useEffect(() => {
-    if (currentChannel && name) {
-      dispatch({ type: "ADD_MEMBER", payload: name });
-    }
-  }, [currentChannel, name, dispatch]);
-
-  useEffect(() => {
-    if (!currentChannel) {
+    if (!currentServer) {
       dispatch({ type: "SET_MEMBER_LIST", payload: [] });
     }
-  }, [currentChannel, dispatch]);
+  }, [currentServer, dispatch]);
 
   useEffect(() => {
     if (
@@ -84,10 +76,34 @@ export function App() {
   }, [currentChannel, currentServer, name, socketRef]);
 
   async function handleJoinServer(server: Server) {
+    // leave previous server presence
+    if (currentServer) {
+      socketRef.current?.send(
+        JSON.stringify({
+          type: "leave-server",
+          name,
+          serverId: currentServer.id,
+        }),
+      );
+    }
+
     dispatch({ type: "SET_SERVER", payload: server });
     dispatch({ type: "SET_CHANNEL", payload: null });
+    dispatch({ type: "SET_MEMBER_LIST", payload: [] }); // clear while loading
 
-    // register membership
+    // announce presence to the new server
+    socketRef.current?.send(
+      JSON.stringify({
+        type: "join-server",
+        name,
+        serverId: server.id,
+      }),
+    );
+
+    //adding self to members in server
+    dispatch({ type: "ADD_MEMBER", payload: name });
+
+    // register membership in DB
     await fetch(`http://localhost:8080/api/servers/${server.id}/join`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -107,24 +123,22 @@ export function App() {
   }
 
   async function handleCreateServer(serverName: string, description: string) {
-    
-      const res = await fetch("http://localhost:8080/api/servers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: serverName, description }),
-      });
+    const res = await fetch("http://localhost:8080/api/servers", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: serverName, description }),
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (!res.ok) {
-        return {error: data.error};
-      }
+    if (!res.ok) {
+      return { error: data.error };
+    }
 
-      setServers((prev) => [...prev, data]);
-      setShowCreateServer(false);
-      handleJoinServer(data);
-      return {};
-    
+    setServers((prev) => [...prev, data]);
+    setShowCreateServer(false);
+    handleJoinServer(data);
+    return {};
   }
 
   function handleJoinChannel(channel: Channel) {
