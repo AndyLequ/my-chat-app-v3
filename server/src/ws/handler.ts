@@ -60,7 +60,7 @@ export function setupWebSocket(wss: WebSocketServer) {
             });
           }
 
-          if(!serverPresence.has(msg.serverId)){
+          if (!serverPresence.has(msg.serverId)) {
             serverPresence.set(msg.serverId, new Set());
           }
           serverPresence.get(msg.serverId)!.add(socket);
@@ -69,17 +69,19 @@ export function setupWebSocket(wss: WebSocketServer) {
 
           // send current online members of this server to the joining user
           const onlineMembers = [...serverPresence.get(msg.serverId)!]
-            .filter(s => s !=== socket && s.userName)
-            .map(s => s.userName!);
+            .filter((s) => s !== socket && s.userName)
+            .map((s) => s.userName!);
 
-          socket.send(JSON.stringify({
-            type: 'server-members',
-            members: onlineMembers,
-          }));
+          socket.send(
+            JSON.stringify({
+              type: "server-members",
+              members: onlineMembers,
+            }),
+          );
 
           // tell everyone else in the server this user came online
           broadcastToServerExcludingSender(socket, msg.serverId, {
-            type: 'server-member-joined',
+            type: "server-member-joined",
             name: msg.name,
           });
           break;
@@ -87,7 +89,7 @@ export function setupWebSocket(wss: WebSocketServer) {
 
         //update join-room -> join-channel
         case "join-channel": {
-          if(!msg.channelId) return;
+          if (!msg.channelId) return;
 
           // leave old channel
           if (socket.currentChannel) {
@@ -150,12 +152,11 @@ export function setupWebSocket(wss: WebSocketServer) {
           break;
         }
 
-
         case "leave-server": {
-          if(socket.currentServer){
+          if (socket.currentServer) {
             serverPresence.get(socket.currentServer)?.delete(socket);
             broadcastToServer(socket.currentServer, {
-              type: 'server-member-left',
+              type: "server-member-left",
               name: socket.userName,
             });
             socket.currentServer = undefined;
@@ -164,7 +165,6 @@ export function setupWebSocket(wss: WebSocketServer) {
         }
       }
     });
-
 
     socket.on("close", () => {
       //clean up channel presence
@@ -177,12 +177,12 @@ export function setupWebSocket(wss: WebSocketServer) {
         });
       }
       // clean up server presence
-      if(socket.currentServer){
+      if (socket.currentServer) {
         serverPresence.get(socket.currentServer)?.delete(socket);
         broadcastToServer(socket.currentServer, {
-          type: 'server-member-left',
-          name: socket.userName ?? 'unknown',
-        })
+          type: "server-member-left",
+          name: socket.userName ?? "unknown",
+        });
       }
     });
   });
@@ -201,9 +201,6 @@ export function setupWebSocket(wss: WebSocketServer) {
   }, 30000);
 }
 
-
-
-
 function broadcastToChannel(channelId: number, msg: object) {
   channels.get(channelId)?.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
@@ -212,19 +209,22 @@ function broadcastToChannel(channelId: number, msg: object) {
   });
 }
 
-
-function broadcastToServer(serverId: number, msg: object){
+function broadcastToServer(serverId: number, msg: object) {
   serverPresence.get(serverId)?.forEach((client) => {
-    if(client.readyState === WebSocket.OPEN){
+    if (client.readyState === WebSocket.OPEN) {
       client.send(JSON.stringify(msg));
     }
   });
 }
 
-function broadcastToServerExcludingSender(sender: ChatSocket, serverId: number, msg: object) {
+function broadcastToServerExcludingSender(
+  sender: ChatSocket,
+  serverId: number,
+  msg: object,
+) {
   serverPresence.get(serverId)?.forEach((client) => {
-    if(client !== sender && sender && client.readyState === WebSocket.OPEN) {
+    if (client !== sender && sender && client.readyState === WebSocket.OPEN) {
       client.send(JSON.stringify(msg));
     }
-  })
+  });
 }
