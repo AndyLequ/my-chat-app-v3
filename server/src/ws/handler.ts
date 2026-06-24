@@ -163,13 +163,11 @@ export function setupWebSocket(wss: WebSocketServer) {
           break;
         }
       }
-
-      
-    
     });
 
 
     socket.on("close", () => {
+      //clean up channel presence
       if (socket.currentChannel) {
         channels.get(socket.currentChannel)?.delete(socket);
         broadcastToChannel(socket.currentChannel, {
@@ -177,6 +175,14 @@ export function setupWebSocket(wss: WebSocketServer) {
           name: socket.userName ?? "unknown",
           channelId: socket.currentChannel,
         });
+      }
+      // clean up server presence
+      if(socket.currentServer){
+        serverPresence.get(socket.currentServer)?.delete(socket);
+        broadcastToServer(socket.currentServer, {
+          type: 'server-member-left',
+          name: socket.userName ?? 'unknown',
+        })
       }
     });
   });
@@ -195,10 +201,30 @@ export function setupWebSocket(wss: WebSocketServer) {
   }, 30000);
 }
 
+
+
+
 function broadcastToChannel(channelId: number, msg: object) {
   channels.get(channelId)?.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
       client.send(JSON.stringify(msg));
     }
   });
+}
+
+
+function broadcastToServer(serverId: number, msg: object){
+  serverPresence.get(serverId)?.forEach((client) => {
+    if(client.readyState === WebSocket.OPEN){
+      client.send(JSON.stringify(msg));
+    }
+  });
+}
+
+function broadcastToServerExcludingSender(sender: ChatSocket, serverId: number, msg: object) {
+  serverPresence.get(serverId)?.forEach((client) => {
+    if(client !== sender && sender && client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify(msg));
+    }
+  })
 }
