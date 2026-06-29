@@ -9,6 +9,7 @@ import { CreateServerModal } from "./components/CreateServerModal";
 import { useWebSocket } from "./hooks/useWebSocket";
 import type { Server, Channel } from "./types";
 import { BrowseServersModal } from "./components/BrowseServersModal";
+import { DeleteServerModal } from "./components/DeleteServerModal";
 
 export function App() {
   const ctx = useContext(ChatContext)!;
@@ -29,6 +30,7 @@ export function App() {
   const [createServerError, setCreateServerError] = useState<string | null>(
     null,
   );
+  const [serverToDelete, setServerToDelete] = useState<Server | null>(null);
 
   useWebSocket();
 
@@ -177,6 +179,7 @@ export function App() {
           onJoinServer={handleJoinServer}
           onCreateServer={() => setShowCreateServer(true)}
           onBrowseServers={() => setShowBrowseServers(true)}
+          onDeleteServer={(server) => setServerToDelete(server)}
         />
         <Sidebar
           channels={channels}
@@ -202,6 +205,16 @@ export function App() {
           onClose={() => setShowBrowseServers(false)}
           onJoin={handleBrowseJoin}
           myServerIds={servers.map((s) => s.id)}
+        />
+      )}
+      {serverToDelete && (
+        <DeleteServerModal
+          serverName={serverToDelete.name}
+          onCancel={() => setServerToDelete(null)}
+          onConfirm={() => {
+            handleDeleteServer(serverToDelete.id);
+            setServerToDelete(null);
+          }}
         />
       )}
     </>
