@@ -141,6 +141,25 @@ export function App() {
     return {};
   }
 
+  async function handleDeleteServer(serverId: number) {
+    const res = await fetch(`http://localhost:8080/api/servers/${serverId}`, {
+      method: "DELETE",
+    });
+
+    if (!res.ok) return;
+
+    // remove from local list
+    setServers((prev) => prev.filter((s) => s.id !== serverId));
+
+    // if currently viewing this server, clear it
+    if (currentServer?.id === serverId) {
+      dispatch({ type: "SET_SERVER", payload: null });
+      dispatch({ type: "SET_CHANNEL", payload: null });
+      dispatch({ type: "SET_MEMBER_LIST", payload: [] });
+      dispatch({ type: "CLEAR_MESSAGES" });
+    }
+  }
+
   function handleJoinChannel(channel: Channel) {
     if (currentChannel?.id === channel.id) return;
 
