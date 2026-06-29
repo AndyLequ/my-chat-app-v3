@@ -35,6 +35,7 @@ export interface ChatMessage {
   text?: string;
   room?: string;
   channelId?: number;
+  serverId?: number;
   timestamp?: string;
   members?: string[];
   messages?: ChatMessage[];
