@@ -45,6 +45,23 @@ function reducer(state: AppState, action: ActionType): AppState {
         ...state,
         members: state.members.filter((m) => m !== action.payload),
       };
+    case "SERVER_DELETED":
+      return {
+        ...state,
+        currentServer:
+          state.currentServer?.id === action.payload
+            ? null
+            : state.currentServer,
+        currentChannel:
+          state.currentServer?.id === action.payload
+            ? null
+            : state.currentChannel,
+        messages:
+          state.currentServer?.id === action.payload ? [] : state.messages,
+        members:
+          state.currentServer?.id === action.payload ? [] : state.members,
+      };
+
     default:
       return state;
   }

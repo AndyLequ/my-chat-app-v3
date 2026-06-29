@@ -63,7 +63,8 @@ export type ActionType =
   | { type: "CLEAR_MESSAGES" }
   | { type: "SET_MEMBER_LIST"; payload: string[] }
   | { type: "ADD_MEMBER"; payload: string }
-  | { type: "REMOVE_MEMBER"; payload: string };
+  | { type: "REMOVE_MEMBER"; payload: string }
+  | { type: "SERVER_DELETED"; payload: number };
 
 export interface ChatContextType extends AppState {
   dispatch: React.Dispatch<ActionType>;
