@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db } from "../db";
 import { servers, channels, serverMembers, messages } from "../db/schema";
 import { eq, inArray } from "drizzle-orm";
+import { notifyServerDeleted } from "../ws/handler";
 
 const router = Router();
 
@@ -131,6 +132,8 @@ router.delete("/:id", async (req, res) => {
   await db.delete(serverMembers).where(eq(serverMembers.serverId, serverId));
 
   await db.delete(servers).where(eq(servers.id, serverId));
+
+  notifyServerDeleted(serverId);
 
   res.status(200).json({ success: true });
 });
