@@ -201,6 +201,16 @@ export function setupWebSocket(wss: WebSocketServer) {
   }, 30000);
 }
 
+// create helper for notifying users when server is deleted, export this so routes can call it
+export function notifyServerDeleted(serverId: number) {
+  serverPresence.get(serverId)?.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify({ type: "server-deleted", serverId }));
+    }
+  });
+  serverPresence.delete(serverId);
+}
+
 function broadcastToChannel(channelId: number, msg: object) {
   channels.get(channelId)?.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {

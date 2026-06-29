@@ -62,6 +62,10 @@ export function useWebSocket() {
               payload: { type: "leave", name: msg.name },
             });
             break;
+
+          case "server-deleted":
+            dispatch({ type: "SERVER_DELETED", payload: msg.serverId! });
+            break;
         }
       });
     }

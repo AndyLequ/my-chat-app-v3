@@ -29,11 +29,13 @@ export interface ChatMessage {
     | "members"
     | "server-members"
     | "server-member-joined"
-    | "server-member-left";
+    | "server-member-left"
+    | "server-deleted";
   name: string;
   text?: string;
   room?: string;
   channelId?: number;
+  serverId?: number;
   timestamp?: string;
   members?: string[];
   messages?: ChatMessage[];
@@ -62,7 +64,8 @@ export type ActionType =
   | { type: "CLEAR_MESSAGES" }
   | { type: "SET_MEMBER_LIST"; payload: string[] }
   | { type: "ADD_MEMBER"; payload: string }
-  | { type: "REMOVE_MEMBER"; payload: string };
+  | { type: "REMOVE_MEMBER"; payload: string }
+  | { type: "SERVER_DELETED"; payload: number };
 
 export interface ChatContextType extends AppState {
   dispatch: React.Dispatch<ActionType>;
