@@ -29,7 +29,8 @@ export interface ChatMessage {
     | "members"
     | "server-members"
     | "server-member-joined"
-    | "server-member-left";
+    | "server-member-left"
+    | "server-deleted";
   name: string;
   text?: string;
   room?: string;
