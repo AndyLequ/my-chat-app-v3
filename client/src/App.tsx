@@ -89,6 +89,7 @@ export function App() {
       );
     }
 
+    setChannels([]); // clear channels immediately while new ones load
     dispatch({ type: "SET_SERVER", payload: server });
     dispatch({ type: "SET_CHANNEL", payload: null });
     dispatch({ type: "SET_MEMBER_LIST", payload: [] }); // clear while loading
