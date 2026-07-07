@@ -163,10 +163,31 @@ export function App() {
   }
 
   function handleJoinChannel(channel: Channel) {
+    if (!currentServer) return;
+
     if (currentChannel?.id === channel.id) return;
+
+    if (currentChannel) {
+      socketRef.current?.send(
+        JSON.stringify({
+          type: "leave-channel",
+          name,
+          channelId: currentChannel.id,
+        }),
+      );
+    }
 
     dispatch({ type: "CLEAR_MESSAGES" });
     dispatch({ type: "SET_CHANNEL", payload: channel });
+
+    socketRef.current?.send(
+      JSON.stringify({
+        type: "join-channel",
+        name,
+        channelId: channel.id,
+        serverId: currentServer.id,
+      }),
+    );
   }
 
   if (!nameSet) return <NameScreen />;
