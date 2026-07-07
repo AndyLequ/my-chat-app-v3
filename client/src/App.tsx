@@ -156,6 +156,7 @@ export function App() {
 
     // if currently viewing this server, clear it
     if (currentServer?.id === serverId) {
+      setChannels([]);
       dispatch({ type: "SET_SERVER", payload: null });
       dispatch({ type: "SET_CHANNEL", payload: null });
       dispatch({ type: "SET_MEMBER_LIST", payload: [] });
