@@ -47,6 +47,7 @@ export function Sidebar({
               {channels.map((channel) => (
                 <button
                   key={channel.id}
+                  onClick={() => onJoinChannel(channel)}
                   className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm text-left w-full transition-all
                     ${
                       currentChannel?.id === channel.id

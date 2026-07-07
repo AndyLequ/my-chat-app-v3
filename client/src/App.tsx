@@ -79,8 +79,8 @@ export function App() {
 
   async function handleJoinServer(server: Server) {
     // leave previous server presence
-    if (currentServer) {
-      socketRef.current?.send(
+    if (currentServer && socketRef.current?.readyState === WebSocket.OPEN) {
+      socketRef.current.send(
         JSON.stringify({
           type: "leave-server",
           name,
@@ -95,13 +95,15 @@ export function App() {
     dispatch({ type: "SET_MEMBER_LIST", payload: [] }); // clear while loading
 
     // announce presence to the new server
-    socketRef.current?.send(
-      JSON.stringify({
-        type: "join-server",
-        name,
-        serverId: server.id,
-      }),
-    );
+    if (socketRef.current?.readyState === WebSocket.OPEN) {
+      socketRef.current.send(
+        JSON.stringify({
+          type: "join-server",
+          name,
+          serverId: server.id,
+        }),
+      );
+    }
 
     //adding self to members in server
     dispatch({ type: "ADD_MEMBER", payload: name });
@@ -169,8 +171,8 @@ export function App() {
 
     if (currentChannel?.id === channel.id) return;
 
-    if (currentChannel) {
-      socketRef.current?.send(
+    if (currentChannel && socketRef.current?.readyState === WebSocket.OPEN) {
+      socketRef.current.send(
         JSON.stringify({
           type: "leave-channel",
           name,
@@ -182,14 +184,7 @@ export function App() {
     dispatch({ type: "CLEAR_MESSAGES" });
     dispatch({ type: "SET_CHANNEL", payload: channel });
 
-    socketRef.current?.send(
-      JSON.stringify({
-        type: "join-channel",
-        name,
-        channelId: channel.id,
-        serverId: currentServer.id,
-      }),
-    );
+    // useEffect will handle sending join-channel when socket is ready
   }
 
   if (!nameSet) return <NameScreen />;
