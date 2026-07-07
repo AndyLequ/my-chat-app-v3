@@ -29,36 +29,45 @@ export function Sidebar({
 
       {/* channels list */}
       <div className="flex-1 overflow-y-auto px-2 py-3">
-        <p className="text-zinc-600 text-[10px] font-semibold uppercase tracking-widest px-2 mb-2">
-          Channels
-        </p>
-        {channels.length === 0 ? (
+        {/* no server selected - show prompt */}
+        {!currentServer ? (
+          <div className="flex flex-col items-center justify-center h-full gap-2 px-2">
+            <p className="text-zinc-600 text-sm text-center">
+              Select a server to view its channels
+            </p>
+          </div>
+        ) : channels.length === 0 ? (
           <p className="text-zinc-700 text-xs px-2">No channels yet</p>
         ) : (
-          <div className="flex flex-col gap-0.5">
-            {channels.map((channel) => (
-              <button
-                key={channel.id}
-                onClick={() => onJoinChannel(channel)}
-                className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm text-left w-full transition-all
-                  ${
-                    currentChannel?.id === channel.id
-                      ? "bg-violet-600/20 text-violet-300 font-medium"
-                      : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200"
-                  }`}
-              >
-                <span
-                  className={`text-xs ${currentChannel?.id === channel.id ? "text-violet-400" : "text-zinc-600"}`}
+          <>
+            <p className="text-zinc-600 text-[10px] font-semibold uppercase tracking-widest px-2 mb-2">
+              Channels
+            </p>
+            <div className="flex flex-col gap-0.5">
+              {channels.map((channel) => (
+                <button
+                  key={channel.id}
+                  onClick={() => onJoinChannel(channel)}
+                  className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm text-left w-full transition-all
+                    ${
+                      currentChannel?.id === channel.id
+                        ? "bg-violet-600/20 text-violet-300 font-medium"
+                        : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200"
+                    }`}
                 >
-                  #
-                </span>
-                {channel.name}
-                {currentChannel?.id === channel.id && (
-                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-violet-400" />
-                )}
-              </button>
-            ))}
-          </div>
+                  <span
+                    className={`text-xs ${currentChannel?.id === channel.id ? "text-violet-400" : "text-zinc-600"}`}
+                  >
+                    #
+                  </span>
+                  {channel.name}
+                  {currentChannel?.id === channel.id && (
+                    <span className="ml-auto w-1.5 h-1.5 rounded-full bg-violet-400" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </>
         )}
       </div>
 

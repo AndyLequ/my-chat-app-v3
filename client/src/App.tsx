@@ -79,8 +79,8 @@ export function App() {
 
   async function handleJoinServer(server: Server) {
     // leave previous server presence
-    if (currentServer) {
-      socketRef.current?.send(
+    if (currentServer && socketRef.current?.readyState === WebSocket.OPEN) {
+      socketRef.current.send(
         JSON.stringify({
           type: "leave-server",
           name,
@@ -89,18 +89,21 @@ export function App() {
       );
     }
 
+    setChannels([]); // clear channels immediately while new ones load
     dispatch({ type: "SET_SERVER", payload: server });
     dispatch({ type: "SET_CHANNEL", payload: null });
     dispatch({ type: "SET_MEMBER_LIST", payload: [] }); // clear while loading
 
     // announce presence to the new server
-    socketRef.current?.send(
-      JSON.stringify({
-        type: "join-server",
-        name,
-        serverId: server.id,
-      }),
-    );
+    if (socketRef.current?.readyState === WebSocket.OPEN) {
+      socketRef.current.send(
+        JSON.stringify({
+          type: "join-server",
+          name,
+          serverId: server.id,
+        }),
+      );
+    }
 
     //adding self to members in server
     dispatch({ type: "ADD_MEMBER", payload: name });
@@ -155,6 +158,7 @@ export function App() {
 
     // if currently viewing this server, clear it
     if (currentServer?.id === serverId) {
+      setChannels([]);
       dispatch({ type: "SET_SERVER", payload: null });
       dispatch({ type: "SET_CHANNEL", payload: null });
       dispatch({ type: "SET_MEMBER_LIST", payload: [] });
@@ -163,10 +167,24 @@ export function App() {
   }
 
   function handleJoinChannel(channel: Channel) {
+    if (!currentServer) return;
+
     if (currentChannel?.id === channel.id) return;
+
+    if (currentChannel && socketRef.current?.readyState === WebSocket.OPEN) {
+      socketRef.current.send(
+        JSON.stringify({
+          type: "leave-channel",
+          name,
+          channelId: currentChannel.id,
+        }),
+      );
+    }
 
     dispatch({ type: "CLEAR_MESSAGES" });
     dispatch({ type: "SET_CHANNEL", payload: channel });
+
+    // useEffect will handle sending join-channel when socket is ready
   }
 
   if (!nameSet) return <NameScreen />;
