@@ -4,9 +4,10 @@ import { Message } from "./Message";
 import { JoinNotice } from "./JoinNotice";
 import { LeaveNotice } from "./LeaveNotice";
 import { StatusDot } from "./StatusDot";
+import type { ServerMember } from "../types";
 
 interface ChatAreaProps {
-  members: string[];
+  members: ServerMember[];
 }
 
 export function ChatArea({ members }: ChatAreaProps) {

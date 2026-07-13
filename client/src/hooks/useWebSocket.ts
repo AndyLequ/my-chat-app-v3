@@ -35,6 +35,18 @@ export function useWebSocket() {
             dispatch({ type: "SET_MEMBER_LIST", payload: msg.members ?? [] });
             break;
 
+          case "server-member-online":
+            dispatch({ type: "SET_MEMBER_ONLINE", payload: msg.name });
+            break;
+
+          case "server-member-offline":
+            dispatch({ type: "SET_MEMBER_OFFLINE", payload: msg.name });
+            break;
+
+          case "server-member-removed":
+            dispatch({ type: "REMOVE_MEMBER", payload: msg.name });
+            break;
+
           case "server-member-joined":
             // someone came online in this server
             dispatch({ type: "ADD_MEMBER", payload: msg.name });

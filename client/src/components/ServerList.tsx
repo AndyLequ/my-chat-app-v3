@@ -18,7 +18,7 @@ export function ServerList({
   onDeleteServer,
 }: ServerListProps) {
   const ctx = useContext(ChatContext);
-  const { currentServer } = ctx;
+  const currentServer = ctx?.currentServer ?? null;
 
   return (
     <div className="w-16 shrink-0 h-full flex flex-col items-center bg-zinc-950 border-r border-zinc-800/60 py-3 gap-2">

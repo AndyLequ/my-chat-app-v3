@@ -38,12 +38,29 @@ function reducer(state: AppState, action: ActionType): AppState {
     case "SET_MEMBER_LIST":
       return { ...state, members: action.payload };
     case "ADD_MEMBER":
-      if (state.members.includes(action.payload)) return state;
-      return { ...state, members: [...state.members, action.payload] };
+      if (state.members.find((m) => m.name === action.payload)) return state;
+      return {
+        ...state,
+        members: [...state.members, { name: action.payload, online: true }],
+      };
     case "REMOVE_MEMBER":
       return {
         ...state,
-        members: state.members.filter((m) => m !== action.payload),
+        members: state.members.filter((m) => m.name !== action.payload),
+      };
+    case "SET_MEMBER_ONLINE":
+      return {
+        ...state,
+        members: state.members.map((m) =>
+          m.name === action.payload ? { ...m, online: true } : m,
+        ),
+      };
+    case "SET_MEMBER_OFFLINE":
+      return {
+        ...state,
+        members: state.members.map((m) =>
+          m.name === action.payload ? { ...m, online: false } : m,
+        ),
       };
     case "SERVER_DELETED":
       return {

@@ -10,6 +10,11 @@ interface ChatSocket extends WebSocket {
   isAlive: boolean;
 }
 
+interface ServerMember {
+  name: string;
+  online: boolean;
+}
+
 interface ChatMessage {
   type:
     | "join-channel"
@@ -27,7 +32,7 @@ interface ChatMessage {
   serverId: number;
   text?: string;
   timestamp?: string;
-  members?: ServerMember[]; 
+  members?: ServerMember[];
   messages?: ChatMessage[];
 }
 
@@ -185,7 +190,7 @@ export function setupWebSocket(wss: WebSocketServer) {
         }
 
         case "remove-member": {
-          if(!msg.serverId) return;
+          if (!msg.serverId) return;
           // remove member from DB
           await db
             .delete(serverMembers)
@@ -193,16 +198,16 @@ export function setupWebSocket(wss: WebSocketServer) {
               and(
                 eq(serverMembers.serverId, msg.serverId),
                 eq(serverMembers.userName, msg.name),
-              )
+              ),
             );
-            // remove from presence
-            serverPresence.get(msg.serverId)?.delete(socket);\
-            // tell everyone this person left the server
-            broadcastToServer(msg.serverId, {
-              type: 'server-member-removed',
-              name: msg.name,
-            });
-            socket.currentServer = undefined;
+          // remove from presence
+          serverPresence.get(msg.serverId)?.delete(socket);
+          // tell everyone this person left the server
+          broadcastToServer(msg.serverId, {
+            type: "server-member-removed",
+            name: msg.name,
+          });
+          socket.currentServer = undefined;
           break;
         }
       }

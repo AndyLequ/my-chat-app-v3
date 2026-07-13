@@ -78,6 +78,10 @@ export function App() {
   }, [currentChannel, currentServer, name, socketRef]);
 
   async function handleJoinServer(server: Server) {
+    if (currentServer?.id === server.id) {
+      return;
+    }
+
     // leave previous server presence
     if (currentServer && socketRef.current?.readyState === WebSocket.OPEN) {
       socketRef.current.send(
@@ -94,7 +98,21 @@ export function App() {
     dispatch({ type: "SET_CHANNEL", payload: null });
     dispatch({ type: "SET_MEMBER_LIST", payload: [] }); // clear while loading
 
-    // announce presence to the new server
+    // register membership in DB first so the server can build the initial member list correctly
+    const joinRes = await fetch(
+      `http://localhost:8080/api/servers/${server.id}/join`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userName: name }),
+      },
+    );
+
+    if (!joinRes.ok) {
+      return;
+    }
+
+    // announce presence to the new server after membership exists
     if (socketRef.current?.readyState === WebSocket.OPEN) {
       socketRef.current.send(
         JSON.stringify({
@@ -105,15 +123,8 @@ export function App() {
       );
     }
 
-    //adding self to members in server
+    // adding self to members in server
     dispatch({ type: "ADD_MEMBER", payload: name });
-
-    // register membership in DB
-    await fetch(`http://localhost:8080/api/servers/${server.id}/join`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userName: name }),
-    });
   }
 
   async function handleBrowseJoin(server: Server) {
@@ -125,6 +136,27 @@ export function App() {
     setServers((prev) => [...prev, server]);
     setShowBrowseServers(false);
     handleJoinServer(server);
+  }
+
+  async function handleLeaveServer() {
+    if (!currentServer) return;
+
+    //tell server to remove from DB and presence
+    socketRef.current?.send(
+      JSON.stringify({
+        type: "remove-member",
+        name,
+        serverId: currentServer.id,
+      }),
+    );
+
+    // remove from local server list
+    setServers((prev) => prev.filter((s) => s.id !== currentServer.id));
+    setChannels([]);
+    dispatch({ type: "SET_SERVER", payload: null });
+    dispatch({ type: "SET_CHANNEL", payload: null });
+    dispatch({ type: "SET_MEMBER_LIST", payload: [] });
+    dispatch({ type: "CLEAR_MESSAGES" });
   }
 
   async function handleCreateServer(serverName: string, description: string) {
@@ -203,6 +235,7 @@ export function App() {
           channels={channels}
           currentChannel={currentChannel}
           onJoinChannel={handleJoinChannel}
+          onLeaveServer={handleLeaveServer}
         />
         <ChatArea members={members} />
         <MembersPanel members={members} />

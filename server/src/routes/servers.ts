@@ -73,11 +73,14 @@ router.post("/:id/join", async (req, res) => {
   const serverId = parseInt(req.params.id);
   const { userName } = req.body;
 
-  // check if already a member
+  // check if this specific user is already a member
   const existing = await db
     .select()
     .from(serverMembers)
-    .where(eq(serverMembers.serverId, serverId))
+    .where(
+      eq(serverMembers.serverId, serverId) &&
+        eq(serverMembers.userName, userName),
+    )
     .limit(1);
 
   if (existing.length > 0) {
