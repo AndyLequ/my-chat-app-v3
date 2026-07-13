@@ -8,12 +8,14 @@ interface SidebarProps {
   channels: Channel[];
   currentChannel: Channel | null;
   onJoinChannel: (channel: Channel) => void;
+  onLeaveServer: () => void;
 }
 
 export function Sidebar({
   channels,
   currentChannel,
   onJoinChannel,
+  onLeaveServer,
 }: SidebarProps) {
   const ctx = useContext(ChatContext)!;
   const { name, connected, currentServer } = ctx;
@@ -25,6 +27,14 @@ export function Sidebar({
         <p className="text-zinc-100 text-sm font-semibold truncate">
           {currentServer?.name ?? "Select a server"}
         </p>
+        {currentServer && (
+          <button
+            onClick={onLeaveServer}
+            className="text-zinc-600 hover:text-rose-400 text-[10px] mt-1 transition-colors"
+          >
+            Leave server
+          </button>
+        )}
       </div>
 
       {/* channels list */}

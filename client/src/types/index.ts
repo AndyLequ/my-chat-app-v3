@@ -19,6 +19,11 @@ export interface Channel {
   serverId: number;
 }
 
+export interface ServerMember {
+  name: string;
+  online: boolean;
+}
+
 export interface ChatMessage {
   id?: string;
   type:
@@ -30,19 +35,23 @@ export interface ChatMessage {
     | "server-members"
     | "server-member-joined"
     | "server-member-left"
-    | "server-deleted";
+    | "server-deleted"
+    | "server-member-online"
+    | "server-member-offline"
+    | "server-member-removed"
+    | "remove-member";
   name: string;
   text?: string;
   room?: string;
   channelId?: number;
   serverId?: number;
   timestamp?: string;
-  members?: string[];
+  members?: ServerMember[];
   messages?: ChatMessage[];
 }
 export interface AppState {
   messages: ChatMessage[];
-  members: string[];
+  members: ServerMember[];
   name: string;
   text: string;
   connected: boolean;
@@ -62,9 +71,11 @@ export type ActionType =
   | { type: "SET_SERVER"; payload: Server | null }
   | { type: "SET_CHANNEL"; payload: Channel | null }
   | { type: "CLEAR_MESSAGES" }
-  | { type: "SET_MEMBER_LIST"; payload: string[] }
+  | { type: "SET_MEMBER_LIST"; payload: ServerMember[] }
   | { type: "ADD_MEMBER"; payload: string }
   | { type: "REMOVE_MEMBER"; payload: string }
+  | { type: "SET_MEMBER_ONLINE"; payload: string }
+  | { type: "SET_MEMBER_OFFLINE"; payload: string }
   | { type: "SERVER_DELETED"; payload: number };
 
 export interface ChatContextType extends AppState {

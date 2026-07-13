@@ -2,7 +2,10 @@ import { useState } from "react";
 
 interface CreateServerModalProps {
   onClose: () => void;
-  onCreate: (name: string, description: string) => void;
+  onCreate: (
+    name: string,
+    description: string,
+  ) => Promise<{ error?: string } | void>;
   error?: string | null;
 }
 
@@ -12,17 +15,16 @@ export function CreateServerModal({
 }: CreateServerModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
 
   async function handleCreate() {
     if (!name.trim()) return;
-    setError('');
+    setError("");
     setLoading(true);
     const result = await onCreate(name, description);
     setLoading(false);
-    if(result?.error){
+    if (result?.error) {
       setError(result.error);
     }
   }
@@ -40,8 +42,11 @@ export function CreateServerModal({
           className="bg-zinc-800 text-zinc-100 border border-zinc-700 rounded-xl px-4 py-3 text-sm outline-none focus:border-violet-500 transition-colors placeholder:text-zinc-600"
           placeholder="Server name..."
           value={name}
-          onChange={(e) => {setName(e.target.value); setError('');}}
-          onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+          onChange={(e) => {
+            setName(e.target.value);
+            setError("");
+          }}
+          onKeyDown={(e) => e.key === "Enter" && handleCreate()}
           autoFocus
         />
         <input

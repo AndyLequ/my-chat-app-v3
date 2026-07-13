@@ -1,13 +1,18 @@
 import { WebSocketServer, WebSocket } from "ws";
 import { db } from "../db";
-import { messages } from "../db/schema";
-import { eq } from "drizzle-orm";
+import { messages, serverMembers } from "../db/schema";
+import { and, eq } from "drizzle-orm";
 
 interface ChatSocket extends WebSocket {
   currentChannel?: number;
   currentServer?: number;
   userName?: string;
   isAlive: boolean;
+}
+
+interface ServerMember {
+  name: string;
+  online: boolean;
 }
 
 interface ChatMessage {
@@ -17,12 +22,18 @@ interface ChatMessage {
     | "leave-channel"
     | "typing"
     | "join-server"
-    | "leave-server";
+    | "leave-server"
+    | "remove-member"
+    | "server-member-online"
+    | "server-member-offline"
+    | "server-member-removed";
   name: string;
   channelId: number;
   serverId: number;
   text?: string;
   timestamp?: string;
+  members?: ServerMember[];
+  messages?: ChatMessage[];
 }
 
 //channels map uses ChannelId as key
@@ -67,19 +78,33 @@ export function setupWebSocket(wss: WebSocketServer) {
           socket.currentServer = msg.serverId;
           socket.userName = msg.name;
 
-          // send current online members of this server to the joining user
-          const onlineMembers = [...serverPresence.get(msg.serverId)!]
-            .filter((s) => s.userName)
-            .map((s) => s.userName!);
+          // fetch ALL members from database
+          const allMembers = await db
+            .select()
+            .from(serverMembers)
+            .where(eq(serverMembers.serverId, msg.serverId));
+
+          // get who is currently online
+          const onlineNames = new Set(
+            [...serverPresence.get(msg.serverId)!]
+              .map((s) => s.userName)
+              .filter(Boolean),
+          );
+
+          // send combined list with online status
+          const memberList = allMembers.map((m) => ({
+            name: m.userName,
+            online: onlineNames.has(m.userName),
+          }));
 
           socket.send(
             JSON.stringify({
               type: "server-members",
-              members: onlineMembers,
+              members: memberList,
             }),
           );
 
-          // tell everyone else in the server this user came online
+          // tell others this user came online
           broadcastToServerExcludingSender(socket, msg.serverId, {
             type: "server-member-joined",
             name: msg.name,
@@ -156,11 +181,33 @@ export function setupWebSocket(wss: WebSocketServer) {
           if (socket.currentServer) {
             serverPresence.get(socket.currentServer)?.delete(socket);
             broadcastToServer(socket.currentServer, {
-              type: "server-member-left",
+              type: "server-member-offline",
               name: socket.userName,
             });
             socket.currentServer = undefined;
           }
+          break;
+        }
+
+        case "remove-member": {
+          if (!msg.serverId) return;
+          // remove member from DB
+          await db
+            .delete(serverMembers)
+            .where(
+              and(
+                eq(serverMembers.serverId, msg.serverId),
+                eq(serverMembers.userName, msg.name),
+              ),
+            );
+          // remove from presence
+          serverPresence.get(msg.serverId)?.delete(socket);
+          // tell everyone this person left the server
+          broadcastToServer(msg.serverId, {
+            type: "server-member-removed",
+            name: msg.name,
+          });
+          socket.currentServer = undefined;
           break;
         }
       }
@@ -180,7 +227,7 @@ export function setupWebSocket(wss: WebSocketServer) {
       if (socket.currentServer) {
         serverPresence.get(socket.currentServer)?.delete(socket);
         broadcastToServer(socket.currentServer, {
-          type: "server-member-left",
+          type: "server-member-offline",
           name: socket.userName ?? "unknown",
         });
       }
