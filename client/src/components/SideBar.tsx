@@ -3,6 +3,7 @@ import { useContext } from "react";
 import { ChatContext } from "../context/ChatContext";
 import { Avatar } from "./Avatar";
 import { StatusDot } from "./StatusDot";
+import { useAuth } from "../context/AuthContext";
 
 interface SidebarProps {
   channels: Channel[];
@@ -17,6 +18,7 @@ export function Sidebar({
   onJoinChannel,
   onLeaveServer,
 }: SidebarProps) {
+  const { logout } = useAuth();
   const ctx = useContext(ChatContext)!;
   const { name, connected, currentServer } = ctx;
 
@@ -92,6 +94,13 @@ export function Sidebar({
               {connected ? "online" : "offline"}
             </p>
           </div>
+          <button
+            onClick={logout}
+            title="Sign out"
+            className="text-zinc-600 hover:text-rose-400 text-xs transition-colors"
+          >
+            ↪
+          </button>
         </div>
       )}
     </div>

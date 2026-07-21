@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "../db";
 import { servers, channels, serverMembers, messages } from "../db/schema";
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { notifyServerDeleted } from "../ws/handler";
 
 const router = Router();
@@ -77,10 +77,7 @@ router.post("/:id/join", async (req, res) => {
   const existing = await db
     .select()
     .from(serverMembers)
-    .where(
-      eq(serverMembers.serverId, serverId) &&
-        eq(serverMembers.userName, userName),
-    )
+    .where(and(eq(serverMembers.serverId, serverId), eq(serverMembers.userName, userName)))
     .limit(1);
 
   if (existing.length > 0) {

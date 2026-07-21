@@ -41,3 +41,10 @@ export const serverMembers = pgTable("server_members", {
   userName: varchar("user_name", { length: 100 }).notNull(),
   joinedAt: timestamp("joined_at").defaultNow().notNull(),
 });
+
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: varchar("username", { length: 100 }).notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});

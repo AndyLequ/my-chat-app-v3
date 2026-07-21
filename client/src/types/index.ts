@@ -83,3 +83,9 @@ export interface ChatContextType extends AppState {
   socketRef: React.RefObject<WebSocket | null>;
   bottomRef: React.RefObject<HTMLDivElement | null>;
 }
+
+export interface AuthState {
+  token: string | null;
+  username: string | null;
+  isAuthenticated: boolean;
+}

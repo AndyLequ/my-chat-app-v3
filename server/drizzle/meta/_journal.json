@@ -15,6 +15,13 @@
       "when": 1780343080177,
       "tag": "0001_rare_hannibal_king",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784142777069,
+      "tag": "0002_spooky_robbie_robertson",
+      "breakpoints": true
     }
   ]
 }

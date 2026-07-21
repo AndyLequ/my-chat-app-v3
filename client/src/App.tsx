@@ -4,24 +4,19 @@ import { ServerList } from "./components/ServerList";
 import { Sidebar } from "./components/SideBar";
 import { ChatArea } from "./components/ChatArea";
 import { MembersPanel } from "./components/MembersPanel";
-import { NameScreen } from "./components/NameScreen";
 import { CreateServerModal } from "./components/CreateServerModal";
 import { useWebSocket } from "./hooks/useWebSocket";
 import type { Server, Channel } from "./types";
 import { BrowseServersModal } from "./components/BrowseServersModal";
 import { DeleteServerModal } from "./components/DeleteServerModal";
+import { useAuth } from "./context/AuthContext";
 
 export function App() {
+  const { username } = useAuth();
   const ctx = useContext(ChatContext)!;
-  const {
-    nameSet,
-    members,
-    currentChannel,
-    currentServer,
-    name,
-    dispatch,
-    socketRef,
-  } = ctx;
+  const { members, currentChannel, currentServer, dispatch, socketRef } = ctx;
+
+  const name = username ?? "";
 
   const [servers, setServers] = useState<Server[]>([]);
   const [channels, setChannels] = useState<Channel[]>([]);
@@ -98,33 +93,20 @@ export function App() {
     dispatch({ type: "SET_CHANNEL", payload: null });
     dispatch({ type: "SET_MEMBER_LIST", payload: [] }); // clear while loading
 
-    // register membership in DB first so the server can build the initial member list correctly
-    const joinRes = await fetch(
-      `http://localhost:8080/api/servers/${server.id}/join`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userName: name }),
-      },
+    await fetch(`http://localhost:8080/api/servers/${server.id}/join`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userName: name }),
+    });
+
+    // then send join-server - now DB has your membership
+    socketRef.current?.send(
+      JSON.stringify({
+        type: "join-server",
+        name,
+        serverId: server.id,
+      }),
     );
-
-    if (!joinRes.ok) {
-      return;
-    }
-
-    // announce presence to the new server after membership exists
-    if (socketRef.current?.readyState === WebSocket.OPEN) {
-      socketRef.current.send(
-        JSON.stringify({
-          type: "join-server",
-          name,
-          serverId: server.id,
-        }),
-      );
-    }
-
-    // adding self to members in server
-    dispatch({ type: "ADD_MEMBER", payload: name });
   }
 
   async function handleBrowseJoin(server: Server) {
@@ -218,8 +200,6 @@ export function App() {
 
     // useEffect will handle sending join-channel when socket is ready
   }
-
-  if (!nameSet) return <NameScreen />;
 
   return (
     <>
