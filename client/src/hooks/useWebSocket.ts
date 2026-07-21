@@ -9,17 +9,27 @@ export function useWebSocket() {
   const { dispatch, socketRef } = ctx;
 
   useEffect(() => {
+    let mounted = true;
+    let reconnectTimer: number | undefined;
+
     function connect() {
+      if (!mounted) return;
+
       const ws = new WebSocket(WS_URL);
       socketRef.current = ws;
 
       ws.addEventListener("open", () => {
+        if (!mounted) return;
         dispatch({ type: "SET_CONNECTED", payload: true });
       });
 
       ws.addEventListener("close", () => {
+        if (!mounted) return;
         dispatch({ type: "SET_CONNECTED", payload: false });
-        setTimeout(connect, 2000);
+        if (reconnectTimer) window.clearTimeout(reconnectTimer);
+        reconnectTimer = window.setTimeout(() => {
+          if (mounted) connect();
+        }, 2000);
       });
 
       ws.addEventListener("message", (e: MessageEvent) => {
@@ -83,6 +93,12 @@ export function useWebSocket() {
     }
 
     connect();
-    return () => socketRef.current?.close();
+
+    return () => {
+      mounted = false;
+      if (reconnectTimer) window.clearTimeout(reconnectTimer);
+      socketRef.current?.close();
+      socketRef.current = null;
+    };
   }, [dispatch, socketRef]);
 }
