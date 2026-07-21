@@ -1,9 +1,7 @@
 import type { Channel } from "../types";
 import { useContext } from "react";
 import { ChatContext } from "../context/ChatContext";
-import { Avatar } from "./Avatar";
-import { StatusDot } from "./StatusDot";
-import { useAuth } from "../context/AuthContext";
+import { UserProfileCard } from "./UserProfileCard";
 
 interface SidebarProps {
   channels: Channel[];
@@ -18,9 +16,8 @@ export function Sidebar({
   onJoinChannel,
   onLeaveServer,
 }: SidebarProps) {
-  const { logout } = useAuth();
   const ctx = useContext(ChatContext)!;
-  const { name, connected, currentServer } = ctx;
+  const { currentServer } = ctx;
 
   return (
     <div className="w-52 shrink-0 h-full flex flex-col bg-zinc-950 border-r border-zinc-800/60">
@@ -83,26 +80,9 @@ export function Sidebar({
         )}
       </div>
 
-      {/* user footer */}
-      {name && (
-        <div className="px-3 py-3 border-t border-zinc-800/60 flex items-center gap-2.5">
-          <Avatar name={name} size="sm" />
-          <div className="flex-1 min-w-0">
-            <p className="text-zinc-200 text-xs font-medium truncate">{name}</p>
-            <p className="text-zinc-600 text-[10px] flex items-center gap-1">
-              <StatusDot connected={connected} />
-              {connected ? "online" : "offline"}
-            </p>
-          </div>
-          <button
-            onClick={logout}
-            title="Sign out"
-            className="text-zinc-600 hover:text-rose-400 text-xs transition-colors"
-          >
-            ↪
-          </button>
-        </div>
-      )}
+      <div className="border-t border-zinc-800/60 pt-2">
+        <UserProfileCard />
+      </div>
     </div>
   );
 }
